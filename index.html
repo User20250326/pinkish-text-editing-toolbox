@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文書房 · 工作文字工具箱</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF3F8;
+    --card:#FFFFFF;
+    --card-soft:#FFF8FC;
+    --ink:#5B4258;
+    --ink-soft:#9C7E97;
+    --ink-faint:#CDA8C4;
+    --pink:#FF7EB3;
+    --pink-dark:#F4568F;
+    --pink-pale:#FFE3F1;
+    --mint:#5CD6C0;
+    --mint-soft:#E1F9F3;
+    --yellow:#FFD34D;
+    --lav:#B79CEB;
+    --del:#FF5C5C;
+    --del-bg:#FFD6D6;
+    --add:#2FBE79;
+    --add-bg:#CFF5E0;
+    --line:#FFDCEC;
+    --line-strong:#FFB9DA;
+    --radius:18px;
+    --radius-sm:12px;
+    --radius-pill:999px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* soft dotted + sparkle wash background */
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      radial-gradient(circle, var(--line-strong) 1.6px, transparent 1.6px),
+      radial-gradient(circle at 12% 18%, rgba(255,126,179,0.12) 0%, transparent 40%),
+      radial-gradient(circle at 88% 78%, rgba(92,214,192,0.12) 0%, transparent 45%);
+    background-size:26px 26px, auto, auto;
+    opacity:0.55;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .shell{
+    position:relative;
+    z-index:1;
+    max-width:1180px;
+    margin:0 auto;
+    padding:36px 24px 70px;
+  }
+
+  .pixel-icon{display:inline-block; line-height:0; image-rendering:pixelated;}
+  .pixel-icon svg{width:100%; height:100%; display:block; shape-rendering:crispEdges;}
+
+  .deco{
+    position:absolute;
+    pointer-events:none;
+    opacity:0.85;
+    z-index:2;
+  }
+
+  header.masthead{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card);
+    border:3px dashed var(--line-strong);
+    border-radius:var(--radius);
+    padding:20px 28px;
+    margin-bottom:30px;
+    gap:20px;
+    flex-wrap:wrap;
+    box-shadow:0 6px 0 rgba(255,185,218,0.45);
+    overflow:visible;
+  }
+  header.masthead .title-block{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  header.masthead h1{
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:900;
+    font-size:clamp(24px, 4vw, 34px);
+    margin:0;
+    color:var(--pink-dark);
+    letter-spacing:0.02em;
+  }
+  header.masthead .subtitle{
+    font-family:'Baloo 2', 'Noto Sans TC', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    background:var(--mint-soft);
+    padding:5px 12px;
+    border-radius:var(--radius-pill);
+  }
+  header.masthead .date-stamp{
+    font-family:'Baloo 2', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-faint);
+    letter-spacing:0.02em;
+    text-align:right;
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns:210px 1fr;
+    gap:18px;
+  }
+
+  nav.toc{
+    background:var(--card);
+    border:3px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 10px;
+    align-self:start;
+  }
+  nav.toc .toc-label{
+    font-family:'Baloo 2', 'Noto Sans TC', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    color:var(--ink-faint);
+    letter-spacing:0.08em;
+    padding:4px 10px 12px;
+  }
+  nav.toc button{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    border-radius:var(--radius-pill);
+    font-family:'Noto Sans TC', sans-serif;
+    font-size:14.5px;
+    font-weight:500;
+    color:var(--ink-soft);
+    padding:11px 16px;
+    margin-bottom:4px;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+  nav.toc button .idx{
+    font-family:'Baloo 2', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    min-width:22px;
+    height:22px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--pink-pale);
+    color:var(--pink-dark);
+    border-radius:var(--radius-pill);
+  }
+  nav.toc button.active .idx{background:rgba(255,255,255,0.35); color:#fff;}
+  nav.toc button:hover{background:var(--mint-soft); color:var(--ink); transform:translateX(2px);}
+  nav.toc button.active{
+    background:linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color:#fff;
+    font-weight:700;
+    box-shadow:0 4px 0 rgba(244,86,143,0.3);
+  }
+  nav.toc button:hover:not(.active){box-shadow:none;}
+
+  main.panel{
+    background:var(--card);
+    border:3px solid var(--line);
+    border-radius:var(--radius);
+    padding:32px 36px 40px;
+    min-height:520px;
+    position:relative;
+  }
+
+  .tool-section{display:none;}
+  .tool-section.active{display:block; animation:fadeIn 0.25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .tool-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .tool-header h2{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:800;
+    font-size:21px;
+    margin:0;
+    color:var(--ink);
+  }
+  .tool-header h2 .pixel-icon{width:19px; height:19px;}
+  .desc{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:20px;
+    line-height:1.6;
+  }
+
+  .controls-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .seg-group{
+    display:inline-flex;
+    border:2px solid var(--line-strong);
+    border-radius:var(--radius-pill);
+    overflow:hidden;
+    background:var(--card-soft);
+  }
+  .seg-group button{
+    background:none;
+    border:none;
+    padding:9px 16px;
+    font-family:'Noto Sans TC', sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .seg-group button.active{
+    background:linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color:#fff;
+  }
+  .seg-group button:hover:not(.active){background:var(--pink-pale); color:var(--pink-dark);}
+
+  .btn{
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    padding:9px 18px;
+    border:2px solid var(--line-strong);
+    background:var(--card-soft);
+    color:var(--ink);
+    cursor:pointer;
+    border-radius:var(--radius-pill);
+    transition:all 0.15s ease;
+  }
+  .btn:hover{border-color:var(--pink); color:var(--pink-dark); transform:translateY(-1px);}
+  .btn.primary{
+    background:linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color:#fff;
+    border-color:transparent;
+    box-shadow:0 3px 0 rgba(244,86,143,0.35);
+  }
+  .btn.primary:hover{color:#fff; filter:brightness(1.05); transform:translateY(-1px);}
+  .btn.primary:active{box-shadow:0 1px 0 rgba(244,86,143,0.35); transform:translateY(1px);}
+  .btn.ghost{background:transparent;}
+
+  .field-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+  .field-grid.with-mid{
+    grid-template-columns:1fr minmax(150px,180px) 1fr;
+    align-items:stretch;
+  }
+  @media (max-width: 760px){
+    .field-grid{grid-template-columns:1fr;}
+    .field-grid.with-mid{grid-template-columns:1fr;}
+  }
+
+  .mid-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:18px 10px;
+    border-left:2px dashed var(--line-strong);
+    border-right:2px dashed var(--line-strong);
+  }
+  @media (max-width:760px){
+    .mid-actions{
+      border-left:none; border-right:none;
+      border-top:2px dashed var(--line-strong);
+      border-bottom:2px dashed var(--line-strong);
+      padding:16px 0;
+    }
+  }
+  .mid-actions .btn{width:100%; text-align:center;}
+  .mid-actions .checkopt{font-size:12.5px; text-align:left; width:100%;}
+  .mid-actions .mid-check-list{display:flex; flex-direction:column; gap:9px; width:100%;}
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .field .label-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .field label{
+    font-family:'Baloo 2', 'Noto Sans TC', sans-serif;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.04em;
+    color:var(--ink-faint);
+  }
+  .char-count{
+    font-family:'Baloo 2', sans-serif;
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+  .mini-clear{
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:700;
+    font-size:12px;
+    color:var(--pink-dark);
+    background:#fff;
+    border:2px solid var(--pink);
+    border-radius:var(--radius-pill);
+    padding:5px 14px;
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .mini-clear:hover{background:var(--pink); color:#fff;}
+
+  textarea{
+    width:100%;
+    min-height:220px;
+    resize:vertical;
+    background:var(--card-soft);
+    border:2px solid var(--line-strong);
+    border-radius:var(--radius-sm);
+    padding:14px;
+    font-family:'IBM Plex Mono', 'Noto Sans TC', monospace;
+    font-size:14.5px;
+    line-height:1.7;
+    color:var(--ink);
+  }
+  textarea:focus{
+    outline:none;
+    border-color:var(--pink);
+    background:#fff;
+    box-shadow:0 0 0 3px var(--pink-pale);
+  }
+  textarea[readonly]{
+    background:var(--card-soft);
+    color:var(--ink);
+  }
+
+  .diff-output{
+    width:100%;
+    min-height:220px;
+    background:var(--card-soft);
+    border:2px solid var(--line-strong);
+    border-radius:var(--radius-sm);
+    padding:14px;
+    font-family:'IBM Plex Mono', 'Noto Sans TC', monospace;
+    font-size:14.5px;
+    line-height:1.9;
+    white-space:pre-wrap;
+    word-break:break-word;
+    overflow-y:auto;
+  }
+  .diff-add{background:#8FE6A3; color:#0F3D1B; font-weight:700; border-radius:4px; text-decoration:none;}
+  .diff-del{background:#FF9E9E; color:#5C0F0F; font-weight:700; border-radius:4px; text-decoration:line-through; text-decoration-thickness:2px;}
+  .diff-empty{color:var(--ink-faint); font-style:normal;}
+
+  .foot-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:14px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .foot-row .options{
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .checkopt{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    user-select:none;
+  }
+  .checkopt input{accent-color:var(--pink-dark); width:15px; height:15px;}
+
+  .stat-line{
+    font-family:'Baloo 2', sans-serif;
+    font-size:12px;
+    color:var(--ink-faint);
+    margin-top:10px;
+  }
+  .stat-line .add-n{color:var(--add); font-weight:700;}
+  .stat-line .del-n{color:var(--pink-dark); font-weight:700;}
+
+  /* cute pixel-heart copy confirmation stamp */
+  .copy-wrap{position:relative; display:inline-flex; width:100%;}
+  .seal-stamp{
+    position:absolute;
+    top:50%; left:50%;
+    width:96px; height:96px;
+    margin:-48px 0 0 -48px;
+    pointer-events:none;
+    opacity:0;
+    transform:scale(1.5) rotate(-8deg);
+    z-index:5;
+  }
+  .seal-stamp.play{
+    animation:stampIn 0.8s cubic-bezier(.2,.9,.25,1) forwards;
+  }
+  @keyframes stampIn{
+    0%{opacity:0; transform:scale(1.8) rotate(-14deg);}
+    35%{opacity:1; transform:scale(0.94) rotate(4deg);}
+    45%{transform:scale(1.05) rotate(-3deg);}
+    70%{opacity:1; transform:scale(1) rotate(0deg);}
+    100%{opacity:0; transform:scale(1) rotate(0deg);}
+  }
+  .seal-stamp svg{width:100%; height:100%; display:block;}
+
+  footer.page-foot{
+    margin-top:26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-faint);
+    font-family:'Baloo 2', sans-serif;
+    letter-spacing:0.02em;
+  }
+  footer.page-foot .pixel-icon{width:16px; height:16px;}
+
+  @media (max-width:760px){
+    .layout{grid-template-columns:1fr;}
+    nav.toc{
+      display:flex;
+      overflow-x:auto;
+      padding:8px;
+    }
+    nav.toc .toc-label{display:none;}
+    nav.toc button{white-space:nowrap;}
+    main.panel{padding:22px 18px 32px;}
+    header.masthead{padding:16px 20px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="masthead">
+    <span class="deco" id="decoStarTopRight" style="top:-12px; right:22px; width:26px; height:26px; transform:rotate(12deg);"></span>
+    <span class="deco" id="decoHeartTopLeft" style="top:-10px; left:36px; width:20px; height:20px; transform:rotate(-10deg);"></span>
+    <div class="title-block">
+      <span class="pixel-icon" id="mascotStrawberry" style="width:32px; height:32px;"></span>
+      <h1>文書房</h1>
+      <span class="subtitle">工作文字工具箱</span>
+    </div>
+    <div class="date-stamp" id="dateStamp"></div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" id="tocNav">
+      <div class="toc-label">工具目錄</div>
+      <button class="active" data-target="tool-convert"><span class="idx">01</span>中文正簡轉換</button>
+      <button data-target="tool-case"><span class="idx">02</span>英文大小寫轉換</button>
+      <button data-target="tool-diff"><span class="idx">03</span>文字比較工具</button>
+      <button data-target="tool-clean"><span class="idx">04</span>空格 / 換行清除</button>
+    </nav>
+
+    <main class="panel">
+
+      <!-- 01 中文正簡轉換 -->
+      <section class="tool-section active" id="tool-convert">
+        <div class="tool-header">
+          <h2><span class="pixel-icon" data-icon="star"></span>中文正簡轉換</h2>
+        </div>
+        <div class="desc">在簡體與正體之間單純切換字形，不轉換用詞。貼上文字後按「轉換」。</div>
+
+        <div class="controls-row">
+          <div class="seg-group" id="convertDirGroup">
+            <button class="active" data-dir="cn-t">簡 → 正</button>
+            <button data-dir="t-cn">正 → 簡</button>
+          </div>
+        </div>
+
+        <div class="field-grid with-mid">
+          <div class="field">
+            <div class="label-row"><label for="convertIn">原文</label><span style="display:flex; align-items:center; gap:10px;"><button class="mini-clear" id="convertInClearBtn">清除</button><span class="char-count" id="convertInCount">0 字</span></span></div>
+            <textarea id="convertIn" placeholder="貼上文字…"></textarea>
+          </div>
+          <div class="mid-actions">
+            <div class="copy-wrap">
+              <button class="btn primary" id="convertRunBtn">轉換</button>
+              <div class="seal-stamp" id="convertStamp"></div>
+            </div>
+            <div class="mid-check-list">
+              <label class="checkopt"><input type="checkbox" id="convertAutoCopy">轉換後自動複製至剪貼簿</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label-row"><label for="convertOut">轉換結果</label><span class="char-count" id="convertOutCount">0 字</span></div>
+            <textarea id="convertOut" readonly placeholder="按中間「轉換」按鈕後顯示結果"></textarea>
+          </div>
+        </div>
+
+        <div class="foot-row">
+          <button class="btn ghost" id="convertCopyBtn">複製結果</button>
+          <button class="btn ghost" id="convertClearBtn">全部清空</button>
+        </div>
+      </section>
+
+      <!-- 02 英文大小寫轉換 -->
+      <section class="tool-section" id="tool-case">
+        <div class="tool-header">
+          <h2><span class="pixel-icon" data-icon="star"></span>英文大小寫轉換</h2>
+        </div>
+        <div class="desc">選擇轉換方式，貼上文字後按「轉換」，將英文文字轉為全大寫、全小寫或每字首字母大寫。</div>
+
+        <div class="controls-row">
+          <div class="seg-group" id="caseModeGroup">
+            <button class="active" data-mode="upper">全大寫 UPPER</button>
+            <button data-mode="lower">全小寫 lower</button>
+            <button data-mode="title">首字母大寫 Title</button>
+            <button data-mode="sentence">句首大寫 Sentence</button>
+          </div>
+        </div>
+
+        <div class="field-grid with-mid">
+          <div class="field">
+            <div class="label-row"><label for="caseIn">原文</label><span class="char-count" id="caseInCount">0 字</span></div>
+            <textarea id="caseIn" placeholder="輸入英文文字…"></textarea>
+          </div>
+          <div class="mid-actions">
+            <div class="copy-wrap">
+              <button class="btn primary" id="caseRunBtn">轉換</button>
+              <div class="seal-stamp" id="caseStamp"></div>
+            </div>
+            <div class="mid-check-list">
+              <label class="checkopt"><input type="checkbox" id="caseAutoCopy">轉換後自動複製至剪貼簿</label>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label-row"><label for="caseOut">轉換結果</label><span class="char-count" id="caseOutCount">0 字</span></div>
+            <textarea id="caseOut" readonly placeholder="按中間「轉換」按鈕後顯示結果"></textarea>
+          </div>
+        </div>
+
+        <div class="foot-row">
+          <button class="btn ghost" id="caseCopyBtn">複製結果</button>
+          <button class="btn ghost" id="caseClearBtn">全部清空</button>
+        </div>
+      </section>
+
+      <!-- 03 文字比較工具 -->
+      <section class="tool-section" id="tool-diff">
+        <div class="tool-header">
+          <h2><span class="pixel-icon" data-icon="star"></span>文字比較工具</h2>
+        </div>
+        <div class="desc">比對兩段文字的差異，新增內容以綠色標示、刪除內容以紅色刪除線標示；中文以字為單位比對，英文以單字為單位比對。</div>
+
+        <div class="field-grid with-mid">
+          <div class="field">
+            <div class="label-row"><label for="diffA">原始版本</label><button class="mini-clear" id="diffAClearBtn">清除</button></div>
+            <textarea id="diffA" placeholder="貼上原始文字…"></textarea>
+          </div>
+          <div class="mid-actions">
+            <button class="btn primary" id="diffSwapBtn">⇄ 交換</button>
+          </div>
+          <div class="field">
+            <div class="label-row"><label for="diffB">比對版本</label><button class="mini-clear" id="diffBClearBtn">清除</button></div>
+            <textarea id="diffB" placeholder="貼上要比對的文字…"></textarea>
+          </div>
+        </div>
+
+        <div class="controls-row" style="margin-top:16px;">
+          <button class="btn primary" id="diffRunBtn">比較差異</button>
+          <button class="btn ghost" id="diffClearBtn">全部清空</button>
+        </div>
+
+        <div class="field" style="margin-top:4px;">
+          <div class="label-row"><label>比對結果</label></div>
+          <div class="diff-output" id="diffOutput"><span class="diff-empty">比較結果會顯示在這裡</span></div>
+          <div class="stat-line" id="diffStats"></div>
+        </div>
+      </section>
+
+      <!-- 04 空格 / 換行清除 -->
+      <section class="tool-section" id="tool-clean">
+        <div class="tool-header">
+          <h2><span class="pixel-icon" data-icon="star"></span>自動移除文字空格及換行</h2>
+        </div>
+        <div class="desc">貼上文字後按「開始整理」，會一律刪除所有空格；可另外選擇是否合併換行。</div>
+
+        <div class="field-grid with-mid">
+          <div class="field">
+            <div class="label-row"><label for="cleanIn">原文</label><span style="display:flex; align-items:center; gap:10px;"><button class="mini-clear" id="cleanInClearBtn">清除</button><span class="char-count" id="cleanInCount">0 字</span></span></div>
+            <textarea id="cleanIn" placeholder="貼上文字…"></textarea>
+          </div>
+          <div class="mid-actions">
+            <div class="mid-check-list">
+              <label class="checkopt"><input type="checkbox" id="optRemoveNewline" checked>合併所有換行為一行</label>
+              <label class="checkopt"><input type="checkbox" id="optFullwidthSpace">同時刪除全形空白</label>
+              <label class="checkopt"><input type="checkbox" id="cleanAutoCopy">整理後自動複製至剪貼簿</label>
+            </div>
+            <div class="copy-wrap">
+              <button class="btn primary" id="cleanRunBtn">開始整理</button>
+              <div class="seal-stamp" id="cleanStamp"></div>
+            </div>
+          </div>
+          <div class="field">
+            <div class="label-row"><label for="cleanOut">整理結果</label><span class="char-count" id="cleanOutCount">0 字</span></div>
+            <textarea id="cleanOut" readonly placeholder="按中間「開始整理」按鈕後顯示結果"></textarea>
+          </div>
+        </div>
+
+        <div class="foot-row">
+          <button class="btn ghost" id="cleanCopyBtn">複製結果</button>
+          <button class="btn ghost" id="cleanClearBtn">全部清空</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <footer class="page-foot">
+    <span class="pixel-icon" data-icon="strawberry"></span>
+    <span>工作用文字小工具 · 所有內容僅在本機瀏覽器處理，不會上傳</span>
+    <span class="pixel-icon" data-icon="heart"></span>
+  </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.4.0/dist/umd/full.js"></script>
+<script>
+(function(){
+
+  // ---------- pixel art generator ----------
+  function pixelArt(pattern, colorMap){
+    var rows = pattern.length, cols = pattern[0].length;
+    var svg = '<svg viewBox="0 0 '+cols+' '+rows+'" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">';
+    for(var r=0;r<rows;r++){
+      for(var c=0;c<cols;c++){
+        var ch = pattern[r].charAt(c);
+        if(ch === '.') continue;
+        svg += '<rect x="'+c+'" y="'+r+'" width="1" height="1" fill="'+(colorMap[ch]||'#FF7EB3')+'"/>';
+      }
+    }
+    svg += '</svg>';
+    return svg;
+  }
+
+  var PIXEL_PATTERNS = {
+    star: {
+      pattern: [
+        '...S...',
+        '...S...',
+        '..SSS..',
+        'SSSSSSS',
+        '..SSS..',
+        '...S...',
+        '...S...'
+      ],
+      colors: {S:'#FFD34D'}
+    },
+    heart: {
+      pattern: [
+        '.XX.XX.',
+        'XXXXXXX',
+        'XXXXXXX',
+        '.XXXXX.',
+        '..XXX..',
+        '...X...'
+      ],
+      colors: {X:'#FF7EB3'}
+    },
+    strawberry: {
+      pattern: [
+        '..LLL..',
+        '.LLLLL.',
+        '..LLL..',
+        '.RRRRR.',
+        'RRRRRRR',
+        'RYRRYRR',
+        'RRRRRRR',
+        '.RRRRR.',
+        '..RRR..'
+      ],
+      colors: {L:'#5CD6C0', R:'#FF5C7A', Y:'#FFD34D'}
+    }
+  };
+
+  function renderPixelIcon(el){
+    var name = el.getAttribute('data-icon');
+    var def = PIXEL_PATTERNS[name];
+    if(!def) return;
+    el.innerHTML = pixelArt(def.pattern, def.colors);
+  }
+
+  document.querySelectorAll('.pixel-icon[data-icon]').forEach(renderPixelIcon);
+
+  var mascotEl = document.getElementById('mascotStrawberry');
+  if(mascotEl){ mascotEl.innerHTML = pixelArt(PIXEL_PATTERNS.strawberry.pattern, PIXEL_PATTERNS.strawberry.colors); }
+  var decoStar = document.getElementById('decoStarTopRight');
+  if(decoStar){ decoStar.innerHTML = pixelArt(PIXEL_PATTERNS.star.pattern, {S:'#FF7EB3'}); }
+  var decoHeart = document.getElementById('decoHeartTopLeft');
+  if(decoHeart){ decoHeart.innerHTML = pixelArt(PIXEL_PATTERNS.heart.pattern, {X:'#FFD34D'}); }
+
+
+  // ---------- date stamp ----------
+  var d = new Date();
+  var dateStamp = document.getElementById('dateStamp');
+  var y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  dateStamp.textContent = y + '.' + m + '.' + day;
+
+  // ---------- nav switching ----------
+  var tocButtons = document.querySelectorAll('#tocNav button');
+  var sections = document.querySelectorAll('.tool-section');
+  tocButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tocButtons.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var target = btn.getAttribute('data-target');
+      sections.forEach(function(s){ s.classList.toggle('active', s.id === target); });
+    });
+  });
+
+  // ---------- cute pixel-heart copy confirmation stamp ----------
+  var sealSvg =
+    '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect x="4" y="4" width="92" height="92" rx="14" fill="#FFF3F8" stroke="#FF7EB3" stroke-width="4" stroke-dasharray="6 5"/>' +
+    pixelArt(PIXEL_PATTERNS.heart.pattern, {X:'#FF7EB3'}).replace('<svg viewBox="0 0 7 6" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">', '<g transform="translate(29,14) scale(6)">').replace('</svg>', '</g>') +
+    '<text x="50" y="70" text-anchor="middle" font-family="\'Baloo 2\', \'Noto Sans TC\', sans-serif" font-weight="800" font-size="17" fill="#F4568F">已複製 ♥</text>' +
+    '</svg>';
+
+  function stamp(el){
+    el.innerHTML = sealSvg;
+    el.classList.remove('play');
+    void el.offsetWidth; // restart animation
+    el.classList.add('play');
+  }
+
+  function copyText(text, stampEl){
+    if(!text){ return; }
+    navigator.clipboard.writeText(text).then(function(){
+      stamp(stampEl);
+    }).catch(function(){
+      // fallback
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      stamp(stampEl);
+    });
+  }
+
+  function countText(str){
+    return str ? str.length : 0;
+  }
+
+  // ================= 01 中文正簡轉換 =================
+  var convertIn = document.getElementById('convertIn');
+  var convertOut = document.getElementById('convertOut');
+  var convertInCount = document.getElementById('convertInCount');
+  var convertOutCount = document.getElementById('convertOutCount');
+  var convertDirGroup = document.getElementById('convertDirGroup');
+  var convertAutoCopy = document.getElementById('convertAutoCopy');
+  var convertStampEl = document.getElementById('convertStamp');
+  var currentDir = 'cn-t';
+
+  // pure character-level conversion (OpenCC standard 't' locale), no regional vocabulary substitution
+  var converterCnT = null, converterTCn = null;
+  function ensureConverters(){
+    if (typeof OpenCC === 'undefined') return false;
+    if (!converterCnT) converterCnT = OpenCC.Converter({ from: 'cn', to: 't' });
+    if (!converterTCn) converterTCn = OpenCC.Converter({ from: 't', to: 'cn' });
+    return true;
+  }
+
+  function runConvert(){
+    var text = convertIn.value;
+    convertInCount.textContent = countText(text) + ' 字';
+    if(!text){ convertOut.value=''; convertOutCount.textContent='0 字'; return; }
+    if(!ensureConverters()){
+      convertOut.value = '轉換工具載入中，請稍候再試一次…';
+      return;
+    }
+    var result = currentDir === 'cn-t' ? converterCnT(text) : converterTCn(text);
+    convertOut.value = result;
+    convertOutCount.textContent = countText(result) + ' 字';
+    if(convertAutoCopy.checked && result){
+      copyText(result, convertStampEl);
+    }
+  }
+
+  convertDirGroup.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    convertDirGroup.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentDir = btn.getAttribute('data-dir');
+  });
+  document.getElementById('convertRunBtn').addEventListener('click', runConvert);
+  document.getElementById('convertCopyBtn').addEventListener('click', function(){
+    copyText(convertOut.value, convertStampEl);
+  });
+  document.getElementById('convertClearBtn').addEventListener('click', function(){
+    convertIn.value=''; convertOut.value='';
+    convertInCount.textContent='0 字'; convertOutCount.textContent='0 字';
+  });
+  document.getElementById('convertInClearBtn').addEventListener('click', function(){
+    convertIn.value=''; convertInCount.textContent='0 字'; convertIn.focus();
+  });
+
+  // ================= 02 英文大小寫轉換 =================
+  var caseIn = document.getElementById('caseIn');
+  var caseOut = document.getElementById('caseOut');
+  var caseInCount = document.getElementById('caseInCount');
+  var caseOutCount = document.getElementById('caseOutCount');
+  var caseModeGroup = document.getElementById('caseModeGroup');
+  var caseAutoCopy = document.getElementById('caseAutoCopy');
+  var caseStampEl = document.getElementById('caseStamp');
+  var currentCaseMode = 'upper';
+
+  function toTitleCase(str){
+    return str.replace(/\w\S*/g, function(t){
+      return t.charAt(0).toUpperCase() + t.substr(1).toLowerCase();
+    });
+  }
+  function toSentenceCase(str){
+    var lower = str.toLowerCase();
+    return lower.replace(/(^\s*\w|[.!?]\s+\w)/g, function(c){ return c.toUpperCase(); });
+  }
+
+  function runCase(){
+    var text = caseIn.value;
+    caseInCount.textContent = countText(text) + ' 字';
+    if(!text){ caseOut.value=''; caseOutCount.textContent='0 字'; return; }
+    var result = text;
+    if(currentCaseMode === 'upper') result = text.toUpperCase();
+    else if(currentCaseMode === 'lower') result = text.toLowerCase();
+    else if(currentCaseMode === 'title') result = toTitleCase(text);
+    else if(currentCaseMode === 'sentence') result = toSentenceCase(text);
+    caseOut.value = result;
+    caseOutCount.textContent = countText(result) + ' 字';
+    if(caseAutoCopy.checked && result){
+      copyText(result, caseStampEl);
+    }
+  }
+
+  caseModeGroup.addEventListener('click', function(e){
+    var btn = e.target.closest('button');
+    if(!btn) return;
+    caseModeGroup.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    currentCaseMode = btn.getAttribute('data-mode');
+  });
+  document.getElementById('caseRunBtn').addEventListener('click', runCase);
+  document.getElementById('caseCopyBtn').addEventListener('click', function(){
+    copyText(caseOut.value, caseStampEl);
+  });
+  document.getElementById('caseClearBtn').addEventListener('click', function(){
+    caseIn.value=''; caseOut.value='';
+    caseInCount.textContent='0 字'; caseOutCount.textContent='0 字';
+  });
+
+  // ================= 03 文字比較工具 =================
+  var diffA = document.getElementById('diffA');
+  var diffB = document.getElementById('diffB');
+  var diffOutput = document.getElementById('diffOutput');
+  var diffStats = document.getElementById('diffStats');
+
+  // tokenize: CJK -> one char per token; English/number runs -> one word per token;
+  // whitespace runs -> one token; other punctuation -> one char per token
+  var TOKEN_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]|[A-Za-z0-9]+(?:['\u2019][A-Za-z0-9]+)*|\s+|[^\sA-Za-z0-9\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g;
+  function tokenize(str){
+    return str.match(TOKEN_RE) || [];
+  }
+
+  // token-level LCS diff: Chinese compares character by character, English compares word by word
+  function computeDiff(aTokens, bTokens){
+    var n = aTokens.length, m = bTokens.length;
+    var dp = new Array(n+1);
+    for(var i=0;i<=n;i++){ dp[i] = new Int32Array(m+1); }
+    for(i=n-1;i>=0;i--){
+      for(var j=m-1;j>=0;j--){
+        dp[i][j] = aTokens[i]===bTokens[j] ? dp[i+1][j+1]+1 : Math.max(dp[i+1][j], dp[i][j+1]);
+      }
+    }
+    var ops = []; // {type:'eq'|'add'|'del', tok}
+    i=0; j=0;
+    while(i<n && j<m){
+      if(aTokens[i]===bTokens[j]){ ops.push({type:'eq', tok:aTokens[i]}); i++; j++; }
+      else if(dp[i+1][j] >= dp[i][j+1]){ ops.push({type:'del', tok:aTokens[i]}); i++; }
+      else { ops.push({type:'add', tok:bTokens[j]}); j++; }
+    }
+    while(i<n){ ops.push({type:'del', tok:aTokens[i]}); i++; }
+    while(j<m){ ops.push({type:'add', tok:bTokens[j]}); j++; }
+    return ops;
+  }
+
+  function escapeHtml(s){
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function runDiff(){
+    var a = diffA.value, b = diffB.value;
+    if(!a && !b){
+      diffOutput.innerHTML = '<span class="diff-empty">比較結果會顯示在這裡</span>';
+      diffStats.textContent = '';
+      return;
+    }
+    var ops = computeDiff(tokenize(a), tokenize(b));
+    var html = '', addN = 0, delN = 0;
+    ops.forEach(function(op){
+      var safe = escapeHtml(op.tok);
+      var isWhitespace = /^\s+$/.test(op.tok);
+      if(op.type === 'eq') html += safe;
+      else if(op.type === 'add'){ html += '<span class="diff-add">'+safe+'</span>'; if(!isWhitespace) addN++; }
+      else { html += '<span class="diff-del">'+safe+'</span>'; if(!isWhitespace) delN++; }
+    });
+    diffOutput.innerHTML = html || '<span class="diff-empty">兩段文字完全相同</span>';
+    diffStats.innerHTML = '新增 <span class="add-n">'+addN+'</span> 處　·　刪除 <span class="del-n">'+delN+'</span> 處　　（中文以字為單位、英文以單字為單位比對）';
+  }
+
+  document.getElementById('diffRunBtn').addEventListener('click', runDiff);
+  document.getElementById('diffClearBtn').addEventListener('click', function(){
+    diffA.value=''; diffB.value='';
+    diffOutput.innerHTML = '<span class="diff-empty">比較結果會顯示在這裡</span>';
+    diffStats.textContent = '';
+  });
+  document.getElementById('diffAClearBtn').addEventListener('click', function(){ diffA.value=''; diffA.focus(); });
+  document.getElementById('diffBClearBtn').addEventListener('click', function(){ diffB.value=''; diffB.focus(); });
+  document.getElementById('diffSwapBtn').addEventListener('click', function(){
+    var tmp = diffA.value;
+    diffA.value = diffB.value;
+    diffB.value = tmp;
+  });
+
+  // ================= 04 空格 / 換行清除 =================
+  var cleanIn = document.getElementById('cleanIn');
+  var cleanOut = document.getElementById('cleanOut');
+  var cleanInCount = document.getElementById('cleanInCount');
+  var cleanOutCount = document.getElementById('cleanOutCount');
+  var optRemoveNewline = document.getElementById('optRemoveNewline');
+  var optFullwidthSpace = document.getElementById('optFullwidthSpace');
+  var cleanAutoCopy = document.getElementById('cleanAutoCopy');
+  var cleanStampEl = document.getElementById('cleanStamp');
+
+  function runClean(){
+    var text = cleanIn.value;
+    cleanInCount.textContent = countText(text) + ' 字';
+    var result = text;
+    if(optRemoveNewline.checked) result = result.replace(/[\r\n]+/g, '');
+    // always strip every half-width space and tab
+    result = result.replace(/[ \t]+/g, '');
+    if(optFullwidthSpace.checked) result = result.replace(/\u3000+/g, '');
+    cleanOut.value = result;
+    cleanOutCount.textContent = countText(result) + ' 字';
+    if(cleanAutoCopy.checked && result){
+      copyText(result, cleanStampEl);
+    }
+  }
+
+  [cleanIn].forEach(function(el){
+    el.addEventListener('input', function(){
+      cleanInCount.textContent = countText(cleanIn.value) + ' 字';
+    });
+  });
+  document.getElementById('cleanRunBtn').addEventListener('click', runClean);
+  document.getElementById('cleanCopyBtn').addEventListener('click', function(){
+    copyText(cleanOut.value, cleanStampEl);
+  });
+  document.getElementById('cleanClearBtn').addEventListener('click', function(){
+    cleanIn.value=''; cleanOut.value='';
+    cleanInCount.textContent='0 字'; cleanOutCount.textContent='0 字';
+  });
+  document.getElementById('cleanInClearBtn').addEventListener('click', function(){
+    cleanIn.value=''; cleanInCount.textContent='0 字'; cleanIn.focus();
+  });
+
+})();
+</script>
+</body>
+</html>
