@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>文書房 · 工作文字工具箱</title>
+<title>文字の魔法工具箱 · 怡屏🍎🍎</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -119,6 +119,24 @@
     color:var(--ink-faint);
     letter-spacing:0.02em;
     text-align:right;
+  }
+
+  .header-right{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+  }
+  .signature{
+    font-family:'Baloo 2', 'Noto Sans TC', sans-serif;
+    font-size:12.5px;
+    font-weight:700;
+    color:var(--pink-dark);
+    background:var(--pink-pale);
+    border:2px dashed var(--line-strong);
+    border-radius:var(--radius-pill);
+    padding:5px 14px;
+    white-space:nowrap;
   }
 
   .layout{
@@ -449,6 +467,7 @@
   footer.page-foot{
     margin-top:26px;
     display:flex;
+    flex-wrap:wrap;
     align-items:center;
     justify-content:center;
     gap:10px;
@@ -459,6 +478,18 @@
     letter-spacing:0.02em;
   }
   footer.page-foot .pixel-icon{width:16px; height:16px;}
+  .visitor-line{
+    flex-basis:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+    font-family:'Noto Sans TC', sans-serif;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
 
   @media (max-width:760px){
     .layout{grid-template-columns:1fr;}
@@ -482,10 +513,13 @@
     <span class="deco" id="decoHeartTopLeft" style="top:-10px; left:36px; width:20px; height:20px; transform:rotate(-10deg);"></span>
     <div class="title-block">
       <span class="pixel-icon" id="mascotStrawberry" style="width:32px; height:32px;"></span>
-      <h1>文書房</h1>
+      <h1>文字の魔法工具箱</h1>
       <span class="subtitle">工作文字工具箱</span>
     </div>
-    <div class="date-stamp" id="dateStamp"></div>
+    <div class="header-right">
+      <div class="signature">✨ 怡屏🍎🍎 和Claude共同打造 ✨</div>
+      <div class="date-stamp" id="dateStamp"></div>
+    </div>
   </header>
 
   <div class="layout">
@@ -535,7 +569,7 @@
 
         <div class="foot-row">
           <button class="btn ghost" id="convertCopyBtn">複製結果</button>
-          <button class="btn ghost" id="convertClearBtn">全部清空</button>
+          <button class="btn ghost" id="convertClearBtn">清空</button>
         </div>
       </section>
 
@@ -577,7 +611,7 @@
 
         <div class="foot-row">
           <button class="btn ghost" id="caseCopyBtn">複製結果</button>
-          <button class="btn ghost" id="caseClearBtn">全部清空</button>
+          <button class="btn ghost" id="caseClearBtn">清空</button>
         </div>
       </section>
 
@@ -645,7 +679,7 @@
 
         <div class="foot-row">
           <button class="btn ghost" id="cleanCopyBtn">複製結果</button>
-          <button class="btn ghost" id="cleanClearBtn">全部清空</button>
+          <button class="btn ghost" id="cleanClearBtn">清空</button>
         </div>
       </section>
 
@@ -656,6 +690,11 @@
     <span class="pixel-icon" data-icon="strawberry"></span>
     <span>工作用文字小工具 · 所有內容僅在本機瀏覽器處理，不會上傳</span>
     <span class="pixel-icon" data-icon="heart"></span>
+    <div class="visitor-line">
+      <span>已有</span>
+      <img src="https://visitor-badge.laobi.icu/badge?page_id=yiping.wenzi-magic-toolbox" alt="訪問人次" style="height:20px; vertical-align:middle;">
+      <span>位朋友來完成工作啦 🍓</span>
+    </div>
   </footer>
 </div>
 
