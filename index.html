@@ -491,6 +491,10 @@
     color:var(--ink-soft);
   }
 
+  .visitor-badge{
+    height:22px; display:inline-block; vertical-align:middle;
+    border-radius:999px; box-shadow:0 2px 0 rgba(244,86,143,0.3);
+  }
   @media (max-width:760px){
     .layout{grid-template-columns:1fr;}
     nav.toc{
@@ -503,6 +507,47 @@
     main.panel{padding:22px 18px 32px;}
     header.masthead{padding:16px 20px;}
   }
+
+  /* ---------- 檔案正簡轉換 ---------- */
+  .file-opts{display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; margin-bottom:16px;}
+  .enc-pick{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-soft);}
+  .enc-pick select{
+    font-family:'Noto Sans TC', sans-serif; font-size:13px; color:var(--ink);
+    background:var(--card-soft); border:2px solid var(--line-strong); border-radius:var(--radius-pill);
+    padding:5px 12px;
+  }
+  .dropzone{
+    border:3px dashed var(--line-strong); border-radius:var(--radius);
+    background:var(--card-soft); padding:30px 18px; text-align:center; cursor:pointer;
+    transition:background 0.15s ease, border-color 0.15s ease;
+  }
+  .dropzone:hover, .dropzone.over{background:var(--pink-pale); border-color:var(--pink);}
+  .dropzone:focus-visible{outline:3px solid var(--pink); outline-offset:3px;}
+  .dropzone .dz-icon{width:30px; height:30px; margin:0 auto 8px;}
+  .dropzone strong{display:block; font-size:15.5px; color:var(--pink-dark); margin-bottom:4px;}
+  .dropzone span.dz-hint{font-size:12.5px; color:var(--ink-soft);}
+  .file-list{display:flex; flex-direction:column; gap:10px; margin-top:16px;}
+  .file-list .empty{font-size:13px; color:var(--ink-faint); text-align:center; padding:8px;}
+  .file-row{
+    display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 14px; align-items:center;
+    background:#fff; border:2px solid var(--line); border-radius:var(--radius-sm); padding:12px 16px;
+  }
+  .file-row .names{min-width:0;}
+  .file-row .from{font-size:12.5px; color:var(--ink-faint); overflow-wrap:anywhere;}
+  .file-row .to{font-size:14.5px; font-weight:700; color:var(--ink); overflow-wrap:anywhere;}
+  .file-row .meta{font-family:'Baloo 2','Noto Sans TC',sans-serif; font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .file-row .tag{display:inline-block; margin-left:6px; padding:1px 9px; border-radius:var(--radius-pill); font-size:11.5px; font-weight:700; background:var(--mint-soft); color:#2a9c87;}
+  .file-row .tag.warn{background:var(--pink-pale); color:var(--pink-dark);}
+  .file-row .row-btns{display:flex; gap:6px; flex-wrap:wrap;}
+  .file-row .row-btns .btn{padding:6px 14px; font-size:12.5px;}
+  @media (max-width:760px){ .file-row{grid-template-columns:1fr;} }
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(10px);
+    background:var(--pink-dark); color:#fff; font-weight:700; font-size:14px;
+    padding:10px 20px; border-radius:var(--radius-pill); box-shadow:0 4px 0 rgba(244,86,143,0.3);
+    opacity:0; pointer-events:none; transition:all 0.2s ease; z-index:20; max-width:90vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
@@ -526,9 +571,10 @@
     <nav class="toc" id="tocNav">
       <div class="toc-label">工具目錄</div>
       <button class="active" data-target="tool-convert"><span class="idx">01</span>中文正簡轉換</button>
-      <button data-target="tool-case"><span class="idx">02</span>英文大小寫轉換</button>
-      <button data-target="tool-diff"><span class="idx">03</span>文字比較工具</button>
-      <button data-target="tool-clean"><span class="idx">04</span>空格 / 換行清除</button>
+      <button data-target="tool-files"><span class="idx">02</span>檔案正簡轉換</button>
+      <button data-target="tool-case"><span class="idx">03</span>英文大小寫轉換</button>
+      <button data-target="tool-diff"><span class="idx">04</span>文字比較工具</button>
+      <button data-target="tool-clean"><span class="idx">05</span>空格 / 換行清除</button>
     </nav>
 
     <main class="panel">
@@ -573,7 +619,51 @@
         </div>
       </section>
 
-      <!-- 02 英文大小寫轉換 -->
+      <!-- 02 檔案正簡轉換 -->
+      <section class="tool-section" id="tool-files">
+        <div class="tool-header">
+          <h2><span class="pixel-icon" data-icon="star"></span>檔案正簡轉換</h2>
+        </div>
+        <div class="desc">一次丟進多個 Word（.docx）或文字檔，轉換後直接下載。Word 會保留原本的格式、表格與圖片，只換字。</div>
+
+        <div class="controls-row">
+          <div class="seg-group" id="fileDirGroup">
+            <button class="active" data-dir="cn-t">簡 → 正</button>
+            <button data-dir="t-cn">正 → 簡</button>
+          </div>
+        </div>
+
+        <div class="file-opts">
+          <label class="checkopt"><input type="checkbox" id="filePhrase"><span id="filePhraseLabel">同時轉換用語（软件→軟體、信息→資訊）</span></label>
+          <label class="enc-pick" for="fileEncoding">文字檔編碼
+            <select id="fileEncoding">
+              <option value="auto">自動判斷</option>
+              <option value="utf-8">UTF-8</option>
+              <option value="gb18030">GBK（簡體常見）</option>
+              <option value="big5">Big5（繁體常見）</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="dropzone" id="fileDrop" tabindex="0" role="button" aria-label="選擇或拖放 Word 檔或文字檔">
+          <div class="pixel-icon dz-icon" data-icon="heart"></div>
+          <strong>把 Word 檔或文字檔拖到這裡，或點一下選擇檔案</strong>
+          <span class="dz-hint">支援 .docx、.txt、.srt、.md、.csv 等，可一次多選；文字檔一律存成 UTF-8</span>
+          <input type="file" id="fileInput" multiple accept=".docx,.txt,.srt,.ass,.vtt,.md,.csv,.tsv,.json,.html,.xml,.log,text/*" hidden>
+        </div>
+
+        <div class="file-list" id="fileList"><div class="empty">還沒有檔案</div></div>
+
+        <div class="foot-row">
+          <span class="stat-line" id="fileStats" style="margin-top:0;"></span>
+          <span style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn ghost" id="fileClearBtn">清除列表</button>
+            <button class="btn primary" id="fileSaveAllBtn">全部下載</button>
+          </span>
+        </div>
+      </section>
+
+      <!-- 03 英文大小寫轉換 -->
       <section class="tool-section" id="tool-case">
         <div class="tool-header">
           <h2><span class="pixel-icon" data-icon="star"></span>英文大小寫轉換</h2>
@@ -615,7 +705,7 @@
         </div>
       </section>
 
-      <!-- 03 文字比較工具 -->
+      <!-- 04 文字比較工具 -->
       <section class="tool-section" id="tool-diff">
         <div class="tool-header">
           <h2><span class="pixel-icon" data-icon="star"></span>文字比較工具</h2>
@@ -648,7 +738,7 @@
         </div>
       </section>
 
-      <!-- 04 空格 / 換行清除 -->
+      <!-- 05 空格 / 換行清除 -->
       <section class="tool-section" id="tool-clean">
         <div class="tool-header">
           <h2><span class="pixel-icon" data-icon="star"></span>自動移除文字空格及換行</h2>
@@ -692,13 +782,14 @@
     <span class="pixel-icon" data-icon="heart"></span>
     <div class="visitor-line">
       <span>已有</span>
-      <img src="https://visitor-badge.laobi.icu/badge?page_id=yiping.wenzi-magic-toolbox" alt="訪問人次" style="height:20px; vertical-align:middle;">
+      <img class="visitor-badge" src="https://visitor-badge.laobi.icu/badge?page_id=yiping.wenzi-magic-toolbox&amp;left_text=%E2%99%A5&amp;left_color=%23F4568F&amp;right_color=%23FF7EB3&amp;format=true" alt="訪問人次">
       <span>位朋友來完成工作啦 🍓</span>
     </div>
   </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.4.0/dist/umd/full.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 (function(){
 
@@ -837,12 +928,12 @@
   var convertStampEl = document.getElementById('convertStamp');
   var currentDir = 'cn-t';
 
-  // pure character-level conversion (OpenCC standard 't' locale), no regional vocabulary substitution
+  // character-level conversion using Taiwan standard glyphs (為、裡、著), no vocabulary substitution
   var converterCnT = null, converterTCn = null;
   function ensureConverters(){
     if (typeof OpenCC === 'undefined') return false;
-    if (!converterCnT) converterCnT = OpenCC.Converter({ from: 'cn', to: 't' });
-    if (!converterTCn) converterTCn = OpenCC.Converter({ from: 't', to: 'cn' });
+    if (!converterCnT) converterCnT = OpenCC.Converter({ from: 'cn', to: 'tw' });
+    if (!converterTCn) converterTCn = OpenCC.Converter({ from: 'tw', to: 'cn' });
     return true;
   }
 
@@ -1048,6 +1139,268 @@
     cleanIn.value=''; cleanInCount.textContent='0 字'; cleanIn.focus();
   });
 
+})();
+</script>
+<script>
+// ================= 02 檔案正簡轉換 =================
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var items = [];
+  var fileDir = 'cn-t';
+  var busy = Promise.resolve();
+
+  // ---- toast ----
+  var toastEl = document.createElement('div');
+  toastEl.className = 'toast'; toastEl.setAttribute('role', 'status');
+  document.body.appendChild(toastEl);
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    clearTimeout(toastEl._t); toastEl._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
+  }
+
+  // ---- converter: tw = 台灣字形（為、裡、著），twp = 再加上台灣用語 ----
+  var cache = {};
+  function converter(){
+    var phrase = $('filePhrase').checked;
+    var key = fileDir + phrase;
+    if (cache[key]) return cache[key];
+    var opt = fileDir === 'cn-t' ? { from:'cn', to: phrase ? 'twp' : 'tw' } : { from: phrase ? 'twp' : 'tw', to:'cn' };
+    return (cache[key] = OpenCC.Converter(opt));
+  }
+
+  // ---- text file decoding (UTF-8 / GBK / Big5) ----
+  function decode(buf){
+    var choice = $('fileEncoding').value, bytes = new Uint8Array(buf);
+    function tryDec(enc, fatal){ try { return new TextDecoder(enc, { fatal: fatal }).decode(bytes); } catch (e) { return null; } }
+    if (choice !== 'auto') return { text: tryDec(choice, false), enc: choice };
+    var s = tryDec('utf-8', true);
+    if (s !== null) return { text: s.replace(/^﻿/, ''), enc: 'utf-8' };
+    var g = tryDec('gb18030', false), b = tryDec('big5', false);
+    function bad(x){ return (x.match(/\uFFFD/g) || []).length; }
+    var pref = fileDir === 't-cn' ? ['big5', b, 'gb18030', g] : ['gb18030', g, 'big5', b];
+    return bad(pref[1]) <= bad(pref[3]) ? { text: pref[1], enc: pref[0] } : { text: pref[3], enc: pref[2] };
+  }
+
+  // ---- Word (.docx): only the text inside <w:t> changes; all formatting XML is left as is ----
+  var DOCX_PARTS = /^word\/(document|header\d*|footer\d*|footnotes|endnotes|comments)\.xml$/;
+  function unescXml(s){
+    return s.replace(/&(lt|gt|amp|quot|apos|#\d+|#x[0-9a-fA-F]+);/g, function(m, e){
+      if (e === 'lt') return '<'; if (e === 'gt') return '>'; if (e === 'amp') return '&';
+      if (e === 'quot') return '"'; if (e === 'apos') return "'";
+      return String.fromCodePoint(e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10));
+    });
+  }
+  function escXml(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function convertWordXml(xml, conv, stats, collect){
+    var re = /<w:p(?=[\s>\/])[^>]*>|<\/w:p>|(<w:t(?=[\s>])[^>]*>)([^<]*)<\/w:t>/g;
+    var stack = [], loose = [], reps = [], m;
+    function processPara(segs){
+      if (!segs.length) return;
+      var texts = segs.map(function(s){ return unescXml(s.raw); });
+      var joined = texts.join(''), out = conv(joined), parts, i, k;
+      stats.chars += joined.length;
+      if (collect){ collect.src.push(joined); collect.out.push(out); }
+      if (out === joined) return;
+      if (out.length === joined.length){
+        // same length: map the converted paragraph back onto the original runs, so each run keeps its formatting
+        parts = []; k = 0;
+        texts.forEach(function(t){ parts.push(out.slice(k, k + t.length)); k += t.length; });
+        for (i = 0; i < joined.length; i++) if (joined[i] !== out[i]) stats.changed++;
+      } else {
+        parts = texts.map(function(t){ return conv(t); });
+        stats.phrase = true;
+      }
+      segs.forEach(function(s, i){ if (parts[i] !== texts[i]) reps.push({ start: s.start, end: s.end, text: escXml(parts[i]) }); });
+    }
+    while ((m = re.exec(xml))){
+      var tok = m[0];
+      if (m[1] !== undefined){
+        var start = m.index + m[1].length;
+        (stack.length ? stack[stack.length - 1] : loose).push({ start: start, end: start + m[2].length, raw: m[2] });
+      } else if (tok === '</w:p>'){ var p = stack.pop(); if (p) processPara(p); }
+      else if (tok.slice(-2) !== '/>') stack.push([]);
+    }
+    while (stack.length) processPara(stack.pop());
+    processPara(loose);
+    if (!reps.length) return xml;
+    reps.sort(function(a, b){ return a.start - b.start; });
+    var res = '', last = 0;
+    reps.forEach(function(r){ res += xml.slice(last, r.start) + r.text; last = r.end; });
+    return res + xml.slice(last);
+  }
+  async function convertDocx(buf, conv){
+    var zip = await JSZip.loadAsync(buf);
+    var stats = { chars: 0, changed: 0, phrase: false }, collect = { src: [], out: [] };
+    var names = Object.keys(zip.files).filter(function(n){ return DOCX_PARTS.test(n); });
+    if (names.indexOf('word/document.xml') < 0) throw new Error('not-docx');
+    for (var i = 0; i < names.length; i++){
+      var n = names[i], xml = await zip.file(n).async('string');
+      var next = convertWordXml(xml, conv, stats, n === 'word/document.xml' ? collect : null);
+      if (next !== xml) zip.file(n, next);
+    }
+    var blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    return { blob: blob, stats: stats, src: collect.src.join('\n'), out: collect.out.join('\n') };
+  }
+
+  // ---- naming ----
+  function outName(name, conv){
+    var dot = name.lastIndexOf('.'), base = dot > 0 ? name.slice(0, dot) : name, ext = dot > 0 ? name.slice(dot) : '.txt';
+    var nb = conv(base);
+    if (nb === base) nb = base + (fileDir === 't-cn' ? '_简' : '_正');
+    return nb + ext;
+  }
+  function uniqueNames(){
+    var seen = {};
+    items.forEach(function(it){
+      var n = it.outName, k = 2, d = it.outName.lastIndexOf('.');
+      while (seen[n]){ n = it.outName.slice(0, d) + '(' + (k++) + ')' + it.outName.slice(d); }
+      seen[n] = 1; it.outName = n;
+    });
+  }
+
+  // ---- convert one item ----
+  async function convertItem(it){
+    var conv = converter();
+    it.outName = outName(it.name, conv);
+    it.error = false;
+    if (it.kind === 'docx'){
+      var r = await convertDocx(it.buf, conv);
+      it.blob = r.blob; it.chars = r.stats.chars; it.changed = r.stats.changed; it.phraseHit = r.stats.phrase;
+      it.src = r.src; it.out = r.out;
+    } else {
+      it.out = conv(it.text); it.src = it.text; it.chars = it.text.length; it.phraseHit = false;
+      it.changed = 0;
+      if (it.out.length === it.text.length){ for (var i = 0; i < it.text.length; i++) if (it.text[i] !== it.out[i]) it.changed++; }
+      else it.phraseHit = true;
+    }
+    it.unchanged = it.src === it.out;
+  }
+  function reconvertAll(){
+    if (!items.length) return;
+    busy = busy.then(async function(){
+      for (var i = 0; i < items.length; i++){ try { await convertItem(items[i]); } catch (e) { items[i].error = true; } }
+      uniqueNames(); renderList();
+    });
+  }
+
+  // ---- download (works on GitHub Pages and when the file is opened locally) ----
+  function fileData(it){ return it.kind === 'docx' ? it.blob : new Blob([it.out], { type: 'text/plain;charset=utf-8' }); }
+  function download(it){
+    var url = URL.createObjectURL(fileData(it)), a = document.createElement('a');
+    a.href = url; a.download = it.outName; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  }
+
+  // ---- compare in the diff tool ----
+  function openInDiff(it){
+    $('diffA').value = it.src; $('diffB').value = it.out;
+    var nav = document.querySelector('#tocNav button[data-target="tool-diff"]');
+    if (nav) nav.click();
+    $('diffRunBtn').click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ---- list ----
+  var encLabel = { 'utf-8': 'UTF-8', 'gb18030': 'GBK', 'big5': 'Big5' };
+  function renderList(){
+    var list = $('fileList');
+    $('fileSaveAllBtn').disabled = !items.length;
+    $('fileClearBtn').disabled = !items.length;
+    $('fileStats').textContent = items.length ? '共 ' + items.length + ' 個檔案' : '';
+    if (!items.length){ list.innerHTML = '<div class="empty">還沒有檔案</div>'; return; }
+    list.innerHTML = '';
+    items.forEach(function(it, idx){
+      var row = document.createElement('div'); row.className = 'file-row';
+      var names = document.createElement('div'); names.className = 'names';
+      var from = document.createElement('div'); from.className = 'from'; from.textContent = it.name;
+      var to = document.createElement('div'); to.className = 'to'; to.textContent = '→ ' + it.outName;
+      var meta = document.createElement('div'); meta.className = 'meta';
+      meta.textContent = (it.kind === 'docx' ? 'Word · ' : '文字檔 · ') + (it.chars || 0).toLocaleString() + ' 字' +
+        (it.kind === 'docx' ? '' : ' · 讀取為 ' + (encLabel[it.enc] || it.enc));
+      var tag = document.createElement('span'); tag.className = 'tag';
+      if (it.error){ tag.className = 'tag warn'; tag.textContent = '轉換失敗'; }
+      else if (it.unchanged){ tag.className = 'tag warn'; tag.textContent = '沒有改動，方向對嗎？'; }
+      else tag.textContent = (it.changed ? it.changed.toLocaleString() + ' 字已轉換' : '已轉換') + (it.phraseHit ? '（含用語）' : '');
+      meta.appendChild(tag);
+      names.appendChild(from); names.appendChild(to); names.appendChild(meta);
+
+      var btns = document.createElement('div'); btns.className = 'row-btns';
+      var cmp = document.createElement('button'); cmp.className = 'btn ghost'; cmp.textContent = '比對差異';
+      cmp.disabled = !!it.error;
+      cmp.addEventListener('click', function(){ openInDiff(it); });
+      var dl = document.createElement('button'); dl.className = 'btn primary'; dl.textContent = '下載';
+      dl.disabled = !!it.error;
+      dl.addEventListener('click', function(){ download(it); });
+      var rm = document.createElement('button'); rm.className = 'btn ghost'; rm.textContent = '移除';
+      rm.setAttribute('aria-label', '移除 ' + it.name);
+      rm.addEventListener('click', function(){ items.splice(idx, 1); renderList(); });
+      btns.appendChild(cmp); btns.appendChild(dl); btns.appendChild(rm);
+      row.appendChild(names); row.appendChild(btns);
+      list.appendChild(row);
+    });
+  }
+
+  async function addFiles(fileList){
+    if (typeof OpenCC === 'undefined' || typeof JSZip === 'undefined'){ toast('轉換工具還在載入，請稍候再試一次'); return; }
+    var added = 0;
+    for (var i = 0; i < fileList.length; i++){
+      var f = fileList[i], lower = f.name.toLowerCase();
+      if (/\.doc$/.test(lower)){ toast('「' + f.name + '」是舊版 .doc，請先在 Word 另存成 .docx'); continue; }
+      var buf = await f.arrayBuffer(), it = { name: f.name };
+      if (/\.docx$/.test(lower)){ it.kind = 'docx'; it.buf = buf; }
+      else {
+        var d = decode(buf);
+        if (d.text == null){ toast('讀不出「' + f.name + '」，試試換個編碼'); continue; }
+        it.kind = 'text'; it.text = d.text; it.enc = d.enc;
+      }
+      try { await convertItem(it); }
+      catch (e){ toast('「' + f.name + '」打不開，檔案可能損壞或有密碼保護'); continue; }
+      items.push(it); added++;
+    }
+    uniqueNames(); renderList();
+    if (added) toast('已轉換 ' + added + ' 個檔案');
+  }
+
+  // ---- events ----
+  var drop = $('fileDrop'), input = $('fileInput');
+  drop.addEventListener('click', function(){ input.click(); });
+  drop.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); } });
+  input.addEventListener('change', function(){
+    var fs = Array.prototype.slice.call(input.files); input.value = '';
+    busy = busy.then(function(){ return addFiles(fs); });
+  });
+  ['dragenter', 'dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+  drop.addEventListener('drop', function(e){
+    var fs = Array.prototype.slice.call(e.dataTransfer.files);
+    busy = busy.then(function(){ return addFiles(fs); });
+  });
+
+  $('fileDirGroup').addEventListener('click', function(e){
+    var btn = e.target.closest('button'); if (!btn) return;
+    $('fileDirGroup').querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    fileDir = btn.getAttribute('data-dir');
+    $('filePhraseLabel').textContent = fileDir === 't-cn'
+      ? '同時轉換用語（軟體→软件、資訊→信息）'
+      : '同時轉換用語（软件→軟體、信息→資訊）';
+    reconvertAll();
+  });
+  $('filePhrase').addEventListener('change', reconvertAll);
+  $('fileEncoding').addEventListener('change', function(){ if (items.length) toast('新的編碼會套用在之後加入的檔案'); });
+  $('fileClearBtn').addEventListener('click', function(){ items = []; renderList(); });
+  $('fileSaveAllBtn').addEventListener('click', async function(){
+    await busy;
+    // each file is saved on its own (no .zip), so nothing needs extracting afterwards
+    var ok = items.filter(function(it){ return !it.error; });
+    for (var i = 0; i < ok.length; i++){
+      download(ok[i]);
+      if (i < ok.length - 1) await new Promise(function(r){ setTimeout(r, 500); });
+    }
+  });
+
+  renderList();
 })();
 </script>
 </body>
