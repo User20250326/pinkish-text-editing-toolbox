@@ -618,6 +618,31 @@
   details.dp-skip summary{cursor:pointer; color:var(--ink-faint); font-size:12.5px; padding:4px 8px; list-style:none; background:var(--card-soft); border-radius:6px; margin:2px 0;}
   details.dp-skip summary::-webkit-details-marker{display:none;}
   details.dp-skip summary:hover{color:var(--pink-dark);}
+
+  /* ---------- 報價試算 ---------- */
+  .stat-grid.five{grid-template-columns:repeat(5, 1fr);}
+  @media (max-width:760px){ .stat-grid.five{grid-template-columns:repeat(2, 1fr);} }
+  .quote-box{margin-top:18px; border:2px solid var(--line-strong); border-radius:var(--radius); background:var(--card-soft); padding:16px 20px 18px;}
+  .quote-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  .quote-head h3{margin:0; font-size:16px; font-weight:800; color:var(--ink);}
+  .quote-scope{font-size:12px; color:var(--ink-soft);}
+  .quote-form{display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px 16px;}
+  .q-field{display:flex; flex-direction:column; gap:5px; font-size:12.5px; font-weight:600; color:var(--ink-soft);}
+  .q-field select, .q-field input{
+    font-family:'Noto Sans TC', sans-serif; font-size:14px; color:var(--ink); background:#fff;
+    border:2px solid var(--line-strong); border-radius:var(--radius-pill); padding:7px 14px; min-width:0; width:100%;
+  }
+  .q-field input:focus, .q-field select:focus{outline:none; border-color:var(--pink); box-shadow:0 0 0 3px var(--pink-pale);}
+  .q-pair{display:flex; gap:6px;}
+  .q-pair select{width:auto; flex:0 0 auto; padding-left:10px; padding-right:8px;}
+  .q-pair input{flex:1 1 0;}
+  .quote-result{margin-top:14px; display:flex; flex-direction:column; gap:4px;}
+  .q-row{display:flex; justify-content:space-between; gap:12px; font-size:13.5px; color:var(--ink-soft);}
+  .q-row .v{color:var(--ink); font-weight:600; text-align:right; font-variant-numeric:tabular-nums;}
+  .q-total{display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-top:6px; padding-top:10px; border-top:2px dashed var(--line-strong);}
+  .q-total .k{font-weight:800; color:var(--ink);}
+  .q-total .v{font-family:'Baloo 2','Noto Sans TC',sans-serif; font-weight:800; font-size:28px; color:var(--pink-dark); font-variant-numeric:tabular-nums;}
+  .q-empty{font-size:13px; color:var(--ink-faint);}
 </style>
 </head>
 <body>
@@ -1031,13 +1056,58 @@
           <div class="stat-card hi"><div class="k">英文單字（含數字）</div><div class="v" id="enWords">0</div></div>
           <div class="stat-card hi"><div class="k">Word 字數<span class="sub">中文字含標點＋英文字詞</span></div><div class="v" id="wordCount">0</div></div>
         </div>
-        <div class="stat-grid">
+        <div class="stat-grid five">
           <div class="stat-card"><div class="k">中文標點</div><div class="v" id="cnPunct">0</div></div>
           <div class="stat-card"><div class="k">字元（含空格）</div><div class="v" id="chSp">0</div></div>
           <div class="stat-card"><div class="k">字元（不含空格）</div><div class="v" id="chNoSp">0</div></div>
           <div class="stat-card"><div class="k">段落</div><div class="v" id="paras">0</div></div>
           <div class="stat-card"><div class="k">行數</div><div class="v" id="lines">0</div></div>
-          <div class="stat-card"><div class="k">預估閱讀時間</div><div class="v small" id="readTime">—</div></div>
+        </div>
+
+        <div class="quote-box" aria-labelledby="quoteTitle">
+          <div class="quote-head"><h3 id="quoteTitle">報價試算</h3><span class="quote-scope" id="quoteScope"></span></div>
+          <div class="quote-form">
+            <label class="q-field" for="qBasis">計字方式
+              <select id="qBasis">
+                <option value="cn">中文字（不含標點）</option>
+                <option value="cnp">中文字（含標點）</option>
+                <option value="en">英文單字（含數字）</option>
+                <option value="mix">中文字＋英文單字（不含標點）</option>
+                <option value="word">Word 字數</option>
+                <option value="chSp">字元（含空格）</option>
+                <option value="chNoSp">字元（不含空格）</option>
+              </select>
+            </label>
+            <label class="q-field" for="qRate">單價
+              <span class="q-pair">
+                <select id="qCur" aria-label="幣別">
+                  <option value="NT$">NT$</option>
+                  <option value="US$">US$</option>
+                  <option value="¥">¥</option>
+                  <option value="€">€</option>
+                </select>
+                <input type="number" id="qRate" min="0" step="any" inputmode="decimal" placeholder="例如 1.2">
+                <select id="qUnit" aria-label="單價單位">
+                  <option value="char">／字</option>
+                  <option value="k">／千字</option>
+                </select>
+              </span>
+            </label>
+            <label class="q-field" for="qRush">急件加成（%）
+              <input type="number" id="qRush" min="0" step="any" inputmode="decimal" placeholder="0">
+            </label>
+            <label class="q-field" for="qMin">最低收費
+              <input type="number" id="qMin" min="0" step="any" inputmode="decimal" placeholder="沒有就留空">
+            </label>
+          </div>
+          <div class="quote-result" id="quoteResult"></div>
+          <div class="foot-row" style="margin-top:12px;">
+            <div class="copy-wrap" style="width:auto;">
+              <button class="btn ghost" id="quoteCopyBtn">複製報價</button>
+              <div class="seal-stamp" id="quoteStamp"></div>
+            </div>
+            <span class="stat-line" style="margin-top:0;">僅供估算，實際請依合約與客戶指定的計字方式為準。單價設定會記在這台電腦的瀏覽器裡。</span>
+          </div>
         </div>
 
         <div class="foot-row">
@@ -2059,8 +2129,67 @@
       var reHanG = new RegExp('[' + HAN + ']', 'g');
       var rePunctG = new RegExp(CJK_PUNCT_SRC, 'g');
       var reAsianG = new RegExp('[' + HAN + '\\u3040-\\u30ff\\uac00-\\ud7af]|' + CJK_PUNCT_SRC, 'g');
-      var lastLines = '';
+      var lastLines = '', lastStats = null, lastSel = false, lastQuote = '';
       function fmt(n){ return n.toLocaleString(); }
+
+      // ---- 報價試算 ----
+      var QKEY = 'wzQuote', QIDS = ['qBasis', 'qCur', 'qRate', 'qUnit', 'qRush', 'qMin'];
+      var BASIS = {
+        cn: ['中文字（不含標點）', function(r){ return r.cnChars; }],
+        cnp: ['中文字（含標點）', function(r){ return r.cnChars + r.cnPunct; }],
+        en: ['英文單字（含數字）', function(r){ return r.enWords; }],
+        mix: ['中文字＋英文單字（不含標點）', function(r){ return r.cnChars + r.enWords; }],
+        word: ['Word 字數', function(r){ return r.wordCount; }],
+        chSp: ['字元（含空格）', function(r){ return r.chSp; }],
+        chNoSp: ['字元（不含空格）', function(r){ return r.chNoSp; }]
+      };
+      function money(n, cur){
+        var d = (cur === 'US$' || cur === '€') ? 2 : 0;
+        return cur + ' ' + n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+      }
+      function quoteUpdate(){
+        var box = $('quoteResult'), r = lastStats || calc('');
+        var basis = BASIS[$('qBasis').value], cur = $('qCur').value, unit = $('qUnit').value;
+        var rate = parseFloat($('qRate').value), rush = parseFloat($('qRush').value) || 0, min = parseFloat($('qMin').value) || 0;
+        var count = basis[1](r);
+        $('quoteScope').textContent = lastSel ? '依選取的文字計算' : (el.value ? '依全部文字計算' : '');
+        box.innerHTML = '';
+        if (!(rate > 0)){
+          box.innerHTML = '<div class="q-empty">輸入單價後，這裡會顯示報價。</div>'; lastQuote = ''; return;
+        }
+        var perChar = unit === 'k' ? rate / 1000 : rate;
+        var sub = count * perChar, rushAmt = sub * rush / 100, total = sub + rushAmt, minApplied = false;
+        if (min > 0 && total < min){ total = min; minApplied = true; }
+        var rows = [
+          ['計價字數', fmt(count) + ' 字（' + basis[0] + '）'],
+          ['單價', cur + ' ' + Number(rate.toFixed(4)).toLocaleString(undefined, { maximumFractionDigits: 4 }) + (unit === 'k' ? '／千字' : '／字')],
+          ['小計', money(sub, cur)]
+        ];
+        if (rush > 0) rows.push(['急件加成 ' + rush + '%', '+ ' + money(rushAmt, cur)]);
+        if (minApplied) rows.push(['未達最低收費', '以 ' + money(min, cur) + ' 計']);
+        rows.forEach(function(row){
+          var d = document.createElement('div'); d.className = 'q-row';
+          var k = document.createElement('span'); k.textContent = row[0];
+          var v = document.createElement('span'); v.className = 'v'; v.textContent = row[1];
+          d.appendChild(k); d.appendChild(v); box.appendChild(d);
+        });
+        var t = document.createElement('div'); t.className = 'q-total';
+        var tk = document.createElement('span'); tk.className = 'k'; tk.textContent = '報價';
+        var tv = document.createElement('span'); tv.className = 'v'; tv.textContent = money(total, cur);
+        t.appendChild(tk); t.appendChild(tv); box.appendChild(t);
+        lastQuote = rows.map(function(row){ return row[0] + '：' + row[1]; }).join('\n') + '\n報價：' + money(total, cur);
+      }
+      try {
+        var qs = JSON.parse(localStorage.getItem(QKEY) || '{}');
+        QIDS.forEach(function(id){ if (qs[id] !== undefined) $(id).value = qs[id]; });
+      } catch (e) {}
+      QIDS.forEach(function(id){
+        $(id).addEventListener(id === 'qRate' || id === 'qRush' || id === 'qMin' ? 'input' : 'change', function(){
+          try { var o = {}; QIDS.forEach(function(k){ o[k] = $(k).value; }); localStorage.setItem(QKEY, JSON.stringify(o)); } catch (e) {}
+          quoteUpdate();
+        });
+      });
+      $('quoteCopyBtn').addEventListener('click', function(){ if (lastQuote) copyText(lastQuote, $('quoteStamp')); });
       function calc(text){
         var han = (text.match(reHanG) || []).length;
         var cnp = (text.match(rePunctG) || []).length;
@@ -2068,15 +2197,10 @@
         var asian = (text.match(reAsianG) || []).length;
         var nonAsian = text.replace(reAsianG, ' ').split(/\s+/).filter(Boolean).length;
         var rows = text ? text.split(/\r\n|\r|\n/) : [];
-        var mins = han / 400 + en / 230, rt;
-        if (!text.trim()) rt = '—';
-        else if (mins < 1) rt = '不到 1 分鐘';
-        else if (mins < 60) rt = '約 ' + Math.round(mins) + ' 分鐘';
-        else rt = '約 ' + Math.floor(mins / 60) + ' 小時 ' + Math.round(mins % 60) + ' 分鐘';
         return {
           cnChars: han, enWords: en, wordCount: asian + nonAsian, cnPunct: cnp,
           chSp: Array.from(text.replace(/[\r\n]/g, '')).length, chNoSp: Array.from(text.replace(/\s/g, '')).length,
-          paras: rows.filter(function(l){ return l.trim(); }).length, lines: rows.length, readTime: rt
+          paras: rows.filter(function(l){ return l.trim(); }).length, lines: rows.length
         };
       }
       function update(){
@@ -2084,10 +2208,10 @@
         var text = sel ? el.value.slice(s, e) : el.value;
         var r = calc(text);
         ['cnChars', 'enWords', 'wordCount', 'cnPunct', 'chSp', 'chNoSp', 'paras', 'lines'].forEach(function(k){ $(k).textContent = fmt(r[k]); });
-        $('readTime').textContent = r.readTime;
         $('countScope').innerHTML = !el.value ? '' : sel
           ? '目前統計：<b>選取的文字</b>（' + fmt(Array.from(text).length) + ' 字元）'
           : '目前統計：<b>全部文字</b>';
+        lastStats = r; lastSel = sel; quoteUpdate();
         lastLines = '中文字（不含標點）：' + fmt(r.cnChars) + '\n英文單字（含數字）：' + fmt(r.enWords) + '\nWord 字數：' + fmt(r.wordCount) +
           '\n中文標點：' + fmt(r.cnPunct) + '\n字元（含空格）：' + fmt(r.chSp) + '\n字元（不含空格）：' + fmt(r.chNoSp) +
           '\n段落：' + fmt(r.paras) + '\n行數：' + fmt(r.lines);
