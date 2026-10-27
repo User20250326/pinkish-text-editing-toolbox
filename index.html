@@ -588,6 +588,36 @@
     height:22px; display:inline-block; vertical-align:middle;
     border-radius:999px; box-shadow:0 2px 0 rgba(244,86,143,0.3);
   }
+
+  /* ---------- PDF 選項分組 ---------- */
+  .opt-groups{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:16px;}
+  .opt-group{background:var(--card-soft); border:2px solid var(--line); border-radius:var(--radius-sm); padding:12px 16px 14px; display:flex; flex-direction:column; gap:10px;}
+  .opt-group h4{margin:0; font-family:'Baloo 2','Noto Sans TC',sans-serif; font-size:13px; font-weight:700; color:var(--pink-dark); letter-spacing:0.03em;}
+  .opt-group .checkopt{align-items:flex-start; line-height:1.45;}
+  .opt-group .checkopt input{margin-top:3px; flex:0 0 auto;}
+  .opt-group small{display:block; color:var(--ink-faint); font-size:11.5px; line-height:1.45;}
+
+  /* ---------- 檔案比較 / 差異面板 ---------- */
+  .cmp-slots{display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; margin-bottom:14px;}
+  @media (max-width:760px){ .cmp-slots{grid-template-columns:1fr;} }
+  .dropzone.slot{padding:18px 14px; position:relative;}
+  .dropzone.slot .slot-label{display:block; font-family:'Baloo 2','Noto Sans TC',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.04em; color:var(--ink-faint); margin-bottom:4px;}
+  .dropzone.slot .slot-name{display:block; font-size:14px; font-weight:700; color:var(--ink-soft); overflow-wrap:anywhere;}
+  .dropzone.slot.filled{border-style:solid; border-color:var(--pink); background:#fff;}
+  .dropzone.slot.filled .slot-name{color:var(--pink-dark);}
+  .dropzone.slot .slot-clear{margin-top:8px; padding:3px 12px; font-size:12px;}
+  .diff-panel{margin-top:20px; border:2px solid var(--line); border-radius:var(--radius); padding:16px 18px 18px; background:var(--card);}
+  .diff-panel .panel-head{display:flex; align-items:center; justify-content:space-between; gap:10px 16px; flex-wrap:wrap; margin-bottom:6px;}
+  .diff-panel .panel-head strong{font-size:14.5px; color:var(--ink); overflow-wrap:anywhere; min-width:0;}
+  .diff-panel .panel-opts{display:flex; align-items:center; gap:8px 16px; flex-wrap:wrap;}
+  .diff-panel .diff-output{white-space:normal; max-height:560px; line-height:1.8; padding:10px 8px; margin-top:8px;}
+  .dp{display:flex; gap:10px; padding:2px 6px; border-radius:6px;}
+  .dp-no{flex:0 0 auto; min-width:2.4em; text-align:right; font-family:'Baloo 2',sans-serif; font-size:11px; color:var(--ink-faint); padding-top:4px; user-select:none;}
+  .dp-t{min-width:0; white-space:pre-wrap; word-break:break-word;}
+  details.dp-skip{margin:2px 0;}
+  details.dp-skip summary{cursor:pointer; color:var(--ink-faint); font-size:12.5px; padding:4px 8px; list-style:none; background:var(--card-soft); border-radius:6px; margin:2px 0;}
+  details.dp-skip summary::-webkit-details-marker{display:none;}
+  details.dp-skip summary:hover{color:var(--pink-dark);}
 </style>
 </head>
 <body>
@@ -633,7 +663,7 @@
         <div class="tool-header">
           <h2><span class="pixel-icon" data-icon="star"></span>中文正簡轉換</h2>
         </div>
-        <div class="desc">在簡體與正體之間單純切換字形，不轉換用詞。貼上文字後按「轉換」。</div>
+        <div class="desc">在簡體與正體之間單純切換字形，不轉換用詞；引號（“ ” 與「 」）可選擇一併轉換。貼上文字後按「轉換」。</div>
 
         <div class="controls-row">
           <div class="seg-group" id="convertDirGroup">
@@ -653,6 +683,7 @@
               <div class="seal-stamp" id="convertStamp"></div>
             </div>
             <div class="mid-check-list">
+              <label class="checkopt"><input type="checkbox" id="convertQuotes" checked>連引號也一起轉（“ ” ↔ 「 」）</label>
               <label class="checkopt"><input type="checkbox" id="convertAutoCopy">轉換後自動複製至剪貼簿</label>
             </div>
           </div>
@@ -876,13 +907,23 @@
         </div>
         <div class="desc">從 PDF 複製的文字常在每一行結尾硬斷行。這個工具會把同一段被拆開的行接回來，並保留真正的段落分隔，比「空格 / 換行清除」更精準。</div>
 
-        <div class="file-opts">
-          <label class="checkopt"><input type="checkbox" id="pdfBlank" checked>空行視為段落分隔</label>
-          <label class="checkopt"><input type="checkbox" id="pdfIndent" checked>縮排或項目符號開頭另起一段</label>
-          <label class="checkopt"><input type="checkbox" id="pdfPeriod">句號結尾另起一段</label>
-          <label class="checkopt"><input type="checkbox" id="pdfHyphen" checked>接回英文連字號斷字</label>
-          <label class="checkopt"><input type="checkbox" id="pdfPageNo">移除單獨成行的頁碼</label>
-          <label class="checkopt"><input type="checkbox" id="pdfGap" checked>段落之間空一行</label>
+        <div class="opt-groups">
+          <div class="opt-group" role="group" aria-labelledby="pdfG1">
+            <h4 id="pdfG1">哪些地方要另起一段</h4>
+            <label class="checkopt"><input type="checkbox" id="pdfBlank" checked><span>有空行的地方<small>PDF 裡原本就空了一行</small></span></label>
+            <label class="checkopt"><input type="checkbox" id="pdfIndent" checked><span>行首有縮排<small>開頭有 2 個以上的空格，或全形空格</small></span></label>
+            <label class="checkopt"><input type="checkbox" id="pdfBullet" checked><span>行首是項目符號或編號<small>例如 •、1.、一、、(1)</small></span></label>
+            <label class="checkopt"><input type="checkbox" id="pdfPeriod"><span>上一行以句號結尾<small>每段都以句號收尾的文章才適合；否則可能把被換行切開的句子拆成兩段</small></span></label>
+          </div>
+          <div class="opt-group" role="group" aria-labelledby="pdfG2">
+            <h4 id="pdfG2">清理</h4>
+            <label class="checkopt"><input type="checkbox" id="pdfHyphen" checked><span>接回英文斷字<small>trans-⏎lation → translation</small></span></label>
+            <label class="checkopt"><input type="checkbox" id="pdfPageNo"><span>移除頁碼行<small>單獨成行的數字，例如 12、- 12 -</small></span></label>
+          </div>
+          <div class="opt-group" role="group" aria-labelledby="pdfG3">
+            <h4 id="pdfG3">輸出格式</h4>
+            <label class="checkopt"><input type="checkbox" id="pdfGap" checked><span>段落之間空一行</span></label>
+          </div>
         </div>
 
         <div class="field-grid with-mid">
@@ -1013,12 +1054,13 @@
         <div class="tool-header">
           <h2><span class="pixel-icon" data-icon="star"></span>檔案批次處理</h2>
         </div>
-        <div class="desc">一次丟進多個 Word（.docx）或文字檔，批次處理後直接下載。Word 會保留原本的格式、表格與圖片，只改文字。</div>
+        <div class="desc">一次丟進多個 Word（.docx）或文字檔，批次轉換、查找取代後直接下載；也可以比較兩個檔案的文字差異。Word 會保留原本的格式、表格與圖片，只改文字。</div>
 
         <div class="controls-row">
           <div class="seg-group" id="fileModeGroup">
             <button class="active" data-fmode="convert">正簡轉換</button>
             <button data-fmode="replace">查找取代</button>
+            <button data-fmode="compare">文字比較</button>
           </div>
         </div>
 
@@ -1033,7 +1075,24 @@
           <button class="btn ghost" id="fileGoRulesBtn">編輯規則</button>
         </div>
 
+        <div class="cmp-slots" id="fileComparePane" hidden>
+          <div class="dropzone slot" id="cmpSlotA" tabindex="0" role="button" aria-label="選擇原始版本檔案">
+            <span class="slot-label">原始版本</span>
+            <span class="slot-name" id="cmpNameA">拖放或點選 Word／文字檔</span>
+            <button class="btn ghost slot-clear" id="cmpClearA" hidden>清除</button>
+            <input type="file" id="cmpInputA" accept=".docx,.txt,.md,.srt,.csv,.tsv,.json,.html,.xml,.log,text/*" hidden>
+          </div>
+          <button class="btn primary" id="cmpSwapBtn" title="交換兩個檔案">⇄ 交換</button>
+          <div class="dropzone slot" id="cmpSlotB" tabindex="0" role="button" aria-label="選擇比對版本檔案">
+            <span class="slot-label">比對版本</span>
+            <span class="slot-name" id="cmpNameB">拖放或點選 Word／文字檔</span>
+            <button class="btn ghost slot-clear" id="cmpClearB" hidden>清除</button>
+            <input type="file" id="cmpInputB" accept=".docx,.txt,.md,.srt,.csv,.tsv,.json,.html,.xml,.log,text/*" hidden>
+          </div>
+        </div>
+
         <div class="file-opts">
+          <label class="checkopt" id="fileQuotesWrap"><input type="checkbox" id="fileQuotes" checked>連引號也一起轉（“ ” ↔ 「 」）</label>
           <label class="checkopt" id="filePhraseWrap"><input type="checkbox" id="filePhrase"><span id="filePhraseLabel">同時轉換用語（软件→軟體、信息→資訊）</span></label>
           <label class="enc-pick" for="fileEncoding">文字檔編碼
             <select id="fileEncoding">
@@ -1054,7 +1113,20 @@
 
         <div class="file-list" id="fileList"><div class="empty">還沒有檔案</div></div>
 
-        <div class="foot-row">
+        <div class="diff-panel" id="fileDiffPanel" hidden>
+          <div class="panel-head">
+            <strong id="fileDiffTitle"></strong>
+            <span class="panel-opts">
+              <label class="checkopt"><input type="checkbox" id="fdOnlyDiff" checked>只顯示有差異的段落</label>
+              <label class="checkopt"><input type="checkbox" id="fdIgnoreSpace">忽略空格與空行</label>
+              <button class="mini-clear" id="fdCloseBtn">關閉</button>
+            </span>
+          </div>
+          <div class="stat-line" id="fileDiffStats" style="margin-top:2px;"></div>
+          <div class="diff-output" id="fileDiffOut"></div>
+        </div>
+
+        <div class="foot-row" id="fileFootRow">
           <span class="stat-line" id="fileStats" style="margin-top:0;"></span>
           <span style="display:flex; gap:8px; flex-wrap:wrap;">
             <button class="btn ghost" id="fileClearBtn">清除列表</button>
@@ -1219,8 +1291,150 @@
     return changed ? segs : null;
   }
 
+  // ---- 正簡轉換時一併轉換引號：簡體用 “ ”、‘ ’，正體用「 」、『 』（每個字元一對一替換，長度不變） ----
+  var HAN_CLASS = '\\u3400-\\u4dbf\\u4e00-\\u9fff\\uf900-\\ufaff';
+  var reHanOne = new RegExp('[' + HAN_CLASS + ']');
+  function convertQuotes(text, dir){
+    if (dir === 't-cn'){
+      var M = { '「': '“', '」': '”', '『': '‘', '』': '’' };
+      return text.replace(/[「」『』]/g, function(c){ return M[c]; });
+    }
+    var out = text.replace(/“/g, '「').replace(/”/g, '」');
+    out = out.replace(new RegExp('‘(?=[' + HAN_CLASS + '])', 'g'), '『');
+    out = out.replace(new RegExp('([' + HAN_CLASS + '，。！？；：、])’', 'g'), '$1』');
+    // 直引號 "：只處理緊貼著中文字的，英文句子裡的不動
+    var open = false;
+    out = out.replace(/"/g, function(m, off, str){
+      var prev = str.charAt(off - 1), next = str.charAt(off + 1);
+      var pH = reHanOne.test(prev) || '，。！？；：、」』）'.indexOf(prev) >= 0 && prev !== '';
+      var nH = reHanOne.test(next) || '「『（'.indexOf(next) >= 0 && next !== '';
+      if (!pH && !nH) return m;
+      if (nH && !pH){ open = true; return '「'; }
+      if (pH && !nH){ open = false; return '」'; }
+      open = !open; return open ? '「' : '」';
+    });
+    return out;
+  }
+
+  // ---- 文字比較引擎：先比段落，再比句子，最後比字詞，長文件也不會卡住 ----
+  var TOKEN_RE = /[一-鿿㐀-䶿豈-﫿]|[A-Za-z0-9]+(?:['’][A-Za-z0-9]+)*|\s+|[^\sA-Za-z0-9一-鿿㐀-䶿豈-﫿]/g;
+  function tokenize(s){ return s.match(TOKEN_RE) || []; }
+  function splitSentences(s){ return s.match(/[^。！？；!?;]*[。！？；!?;]+\s*|[^。！？；!?;]+/g) || []; }
+  // 兩個序列的最長共同子序列；超過 maxCells 就把中間不同的部分整段視為替換
+  function diffSeq(a, b, maxCells){
+    var n = a.length, m = b.length, p = 0, s = 0, i, j, ops = [];
+    while (p < n && p < m && a[p] === b[p]) p++;
+    while (s < n - p && s < m - p && a[n - 1 - s] === b[m - 1 - s]) s++;
+    for (i = 0; i < p; i++) ops.push({ t: 'eq', i: i, j: i });
+    var an = n - p - s, bm = m - p - s;
+    if (an > 0 && bm > 0 && an * bm <= maxCells){
+      var w = bm + 1, dp = new Uint16Array((an + 1) * w);
+      for (i = an - 1; i >= 0; i--) for (j = bm - 1; j >= 0; j--)
+        dp[i * w + j] = a[p + i] === b[p + j] ? dp[(i + 1) * w + j + 1] + 1 : Math.max(dp[(i + 1) * w + j], dp[i * w + j + 1]);
+      i = 0; j = 0;
+      while (i < an && j < bm){
+        if (a[p + i] === b[p + j]){ ops.push({ t: 'eq', i: p + i, j: p + j }); i++; j++; }
+        else if (dp[(i + 1) * w + j] >= dp[i * w + j + 1]){ ops.push({ t: 'del', i: p + i }); i++; }
+        else { ops.push({ t: 'add', j: p + j }); j++; }
+      }
+      while (i < an){ ops.push({ t: 'del', i: p + i }); i++; }
+      while (j < bm){ ops.push({ t: 'add', j: p + j }); j++; }
+    } else {
+      for (i = 0; i < an; i++) ops.push({ t: 'del', i: p + i });
+      for (j = 0; j < bm; j++) ops.push({ t: 'add', j: p + j });
+    }
+    for (i = 0; i < s; i++) ops.push({ t: 'eq', i: n - s + i, j: m - s + i });
+    return ops;
+  }
+  // 一個段落內的差異：回傳 [{t:'eq'|'del'|'add', s}]
+  function inlineSegs(a, b, level){
+    var out = [];
+    function push(t, s){ if (!s) return; var l = out[out.length - 1]; if (l && l.t === t) l.s += s; else out.push({ t: t, s: s }); }
+    var ta = tokenize(a), tb = tokenize(b);
+    if (ta.length * tb.length <= 4e6){
+      diffSeq(ta, tb, 4e6).forEach(function(op){
+        if (op.t === 'eq') push('eq', ta[op.i]); else if (op.t === 'del') push('del', ta[op.i]); else push('add', tb[op.j]);
+      });
+      return out;
+    }
+    if (level > 0){ push('del', a); push('add', b); return out; }
+    var sa = splitSentences(a), sb = splitSentences(b), dels = [], adds = [];
+    function flush(){
+      var k = Math.min(dels.length, adds.length), x;
+      for (x = 0; x < k; x++) inlineSegs(sa[dels[x]], sb[adds[x]], 1).forEach(function(g){ push(g.t, g.s); });
+      for (x = k; x < dels.length; x++) push('del', sa[dels[x]]);
+      for (x = k; x < adds.length; x++) push('add', sb[adds[x]]);
+      dels = []; adds = [];
+    }
+    diffSeq(sa, sb, 16e6).forEach(function(op){
+      if (op.t === 'eq'){ flush(); push('eq', sa[op.i]); }
+      else if (op.t === 'del') dels.push(op.i); else adds.push(op.j);
+    });
+    flush();
+    return out;
+  }
+  function nsLen(s){ return s.replace(/\s/g, '').length; }
+  // 整份文件：以段落（一行）為單位對齊，再比每個有差異的段落
+  function diffDocs(aText, bText, opt){
+    opt = opt || {};
+    function lines(t){ var L = t.replace(/\r\n?/g, '\n').split('\n'); return opt.ignoreSpace ? L.filter(function(x){ return x.trim(); }) : L; }
+    var A = lines(aText), B = lines(bText);
+    function key(x){ return opt.ignoreSpace ? x.replace(/\s+/g, '') : x; }
+    var ops = diffSeq(A.map(key), B.map(key), 16e6);
+    var blocks = [], dels = [], adds = [], st = { chg: 0, add: 0, del: 0, addChars: 0, delChars: 0 };
+    function pushDel(i){ blocks.push({ type: 'del', text: A[i], ia: i }); st.del++; st.delChars += nsLen(A[i]); }
+    function pushAdd(j){ blocks.push({ type: 'add', text: B[j], ib: j }); st.add++; st.addChars += nsLen(B[j]); }
+    function flush(){
+      var k = Math.min(dels.length, adds.length), x;
+      for (x = 0; x < k; x++){
+        var a = A[dels[x]], b = B[adds[x]], segs = inlineSegs(a, b, 0), eqLen = 0;
+        segs.forEach(function(g){ if (g.t === 'eq') eqLen += nsLen(g.s); });
+        var base = Math.max(nsLen(a), nsLen(b));
+        if (base > 0 && eqLen / base >= 0.3){
+          blocks.push({ type: 'chg', segs: segs, ia: dels[x], ib: adds[x] }); st.chg++;
+          segs.forEach(function(g){ if (g.t === 'add') st.addChars += nsLen(g.s); else if (g.t === 'del') st.delChars += nsLen(g.s); });
+        } else { pushDel(dels[x]); pushAdd(adds[x]); }
+      }
+      for (x = k; x < dels.length; x++) pushDel(dels[x]);
+      for (x = k; x < adds.length; x++) pushAdd(adds[x]);
+      dels = []; adds = [];
+    }
+    ops.forEach(function(op){
+      if (op.t === 'eq'){ flush(); blocks.push({ type: 'eq', text: B[op.j], ia: op.i, ib: op.j }); }
+      else if (op.t === 'del') dels.push(op.i); else adds.push(op.j);
+    });
+    flush();
+    return { blocks: blocks, stats: st };
+  }
+  function escHtml(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function renderDiff(res, opt){
+    opt = opt || {};
+    var bl = res.blocks;
+    function para(b){
+      var no = b.ib !== undefined ? b.ib + 1 : b.ia + 1, inner;
+      if (b.type === 'eq') inner = escHtml(b.text);
+      else if (b.type === 'chg') inner = b.segs.map(function(g){ return g.t === 'eq' ? escHtml(g.s) : '<span class="diff-' + g.t + '">' + escHtml(g.s) + '</span>'; }).join('');
+      else inner = '<span class="diff-' + b.type + '">' + escHtml(b.text) + '</span>';
+      return '<div class="dp"><span class="dp-no">' + no + '</span><span class="dp-t">' + (inner || '&nbsp;') + '</span></div>';
+    }
+    if (!opt.onlyDiff) return bl.map(para).join('');
+    var vis = bl.map(function(b, i){
+      return b.type !== 'eq' || (i > 0 && bl[i - 1].type !== 'eq') || (i < bl.length - 1 && bl[i + 1].type !== 'eq');
+    });
+    var html = '', i = 0;
+    while (i < bl.length){
+      if (vis[i]){ html += para(bl[i]); i++; continue; }
+      var j = i, inner = '';
+      while (j < bl.length && !vis[j]){ inner += para(bl[j]); j++; }
+      html += '<details class="dp-skip"><summary>⋯ 相同內容 ' + (j - i) + ' 段（點一下展開）</summary>' + inner + '</details>';
+      i = j;
+    }
+    return html;
+  }
+
   window.WZ = {
     DOCX_PARTS: DOCX_PARTS, unescXml: unescXml, escXml: escXml, mapWordXml: mapWordXml, docxText: docxText,
+    convertQuotes: convertQuotes, diffDocs: diffDocs, renderDiff: renderDiff,
     decodeText: decodeText, parseRules: parseRules, applyToString: applyToString, applyToSegments: applyToSegments,
     getRules: function(){ return { rules: [], bad: [] }; } // 由「批次查找取代」工具接手
   };
@@ -1382,6 +1596,7 @@
       return;
     }
     var result = currentDir === 'cn-t' ? converterCnT(text) : converterTCn(text);
+    if(document.getElementById('convertQuotes').checked) result = WZ.convertQuotes(result, currentDir);
     convertOut.value = result;
     convertOutCount.textContent = countText(result) + ' 字';
     if(convertAutoCopy.checked && result){
@@ -1737,7 +1952,7 @@
       }
       function fix(text){
         var o = {
-          blank: $('pdfBlank').checked, indent: $('pdfIndent').checked, period: $('pdfPeriod').checked,
+          blank: $('pdfBlank').checked, indent: $('pdfIndent').checked, bullet: $('pdfBullet').checked, period: $('pdfPeriod').checked,
           hyphen: $('pdfHyphen').checked, pageNo: $('pdfPageNo').checked, gap: $('pdfGap').checked
         };
         var lines = text.replace(/\r\n?/g, '\n').split('\n'), paras = [], cur = null, inCount = 0;
@@ -1750,7 +1965,7 @@
           if (o.pageNo && /^[-–—\s]*\d{1,4}[-–—\s]*$/.test(line)) return;
           inCount++;
           if (cur === null){ cur = line; return; }
-          if (o.indent && (indented || LIST_START.test(line))){ end(); cur = line; return; }
+          if ((o.indent && indented) || (o.bullet && LIST_START.test(line))){ end(); cur = line; return; }
           if (o.period && /[。！？.!?：」』”）)]$/.test(cur)){ end(); cur = line; return; }
           cur = join(cur, line, o.hyphen);
         });
@@ -1985,8 +2200,9 @@
   async function convertItem(it){
     it.error = false; it.phraseHit = false; it.noRules = false; it.changed = 0;
     if (mode === 'convert'){
-      var conv = converter(), stats = { changed: 0, phrase: false };
-      it.outName = outName(it.name, conv);
+      var base = converter(), stats = { changed: 0, phrase: false };
+      var conv = $('fileQuotes').checked ? function(t){ return WZ.convertQuotes(base(t), fileDir); } : base;
+      it.outName = outName(it.name, base);
       if (it.kind === 'docx'){
         var r = await transformDocx(it.buf, procConvert(conv, stats));
         it.blob = r.blob; it.chars = r.chars; it.src = r.src; it.out = r.out;
@@ -2033,13 +2249,30 @@
     a.href = url; a.download = it.outName; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
   }
-  function openInDiff(it){
-    $('diffA').value = it.src; $('diffB').value = it.out;
-    var nav = document.querySelector('#tocNav button[data-target="tool-diff"]');
-    if (nav) nav.click();
-    $('diffRunBtn').click();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // ---- 差異面板（轉換前後、或兩個檔案之間） ----
+  var diffState = { a: '', b: '', title: '' };
+  function renderDiffPanel(scroll){
+    var out = $('fileDiffOut'), stats = $('fileDiffStats');
+    out.textContent = '比對中…'; stats.textContent = '';
+    setTimeout(function(){
+      var res = WZ.diffDocs(diffState.a, diffState.b, { ignoreSpace: $('fdIgnoreSpace').checked });
+      var s = res.stats, changed = s.chg + s.add + s.del;
+      if (!changed){ out.innerHTML = '<span class="diff-empty">兩份內容完全相同</span>'; stats.textContent = ''; }
+      else {
+        out.innerHTML = WZ.renderDiff(res, { onlyDiff: $('fdOnlyDiff').checked });
+        stats.innerHTML = '共 <b>' + changed + '</b> 段有差異（修改 ' + s.chg + '、新增 ' + s.add + '、刪除 ' + s.del + '）　·　新增 <span class="add-n">' +
+          s.addChars.toLocaleString() + '</span> 字、刪除 <span class="del-n">' + s.delChars.toLocaleString() + '</span> 字';
+      }
+      if (scroll) $('fileDiffPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 20);
   }
+  function showDiff(a, b, title, scroll){
+    diffState = { a: a, b: b, title: title };
+    $('fileDiffTitle').textContent = title;
+    $('fileDiffPanel').hidden = false;
+    renderDiffPanel(scroll);
+  }
+  function openInDiff(it){ showDiff(it.src, it.out, it.name + '：處理前 → 處理後', true); }
 
   // ---- 清單 ----
   var encLabel = { 'utf-8': 'UTF-8', 'gb18030': 'GBK', 'big5': 'Big5' };
@@ -2112,10 +2345,67 @@
     $('fileRulesSummary').textContent = s;
   }
   function applyModeUI(){
-    var rep = mode === 'replace';
-    $('fileDirRow').hidden = rep; $('filePhraseWrap').hidden = rep; $('fileRulesBox').hidden = !rep;
+    var conv = mode === 'convert', rep = mode === 'replace', cmpM = mode === 'compare';
+    $('fileDirRow').hidden = !conv; $('filePhraseWrap').hidden = !conv; $('fileQuotesWrap').hidden = !conv;
+    $('fileRulesBox').hidden = !rep;
+    $('fileComparePane').hidden = !cmpM; $('fileDrop').hidden = cmpM; $('fileList').hidden = cmpM; $('fileFootRow').hidden = cmpM;
     if (rep) updateRulesSummary();
+    if (cmpM) maybeCompare(); else $('fileDiffPanel').hidden = true;
   }
+
+  // ---- 文字比較：兩個檔案各放一格 ----
+  var slots = { a: null, b: null };
+  function slotUI(w){
+    var W = w.toUpperCase(), sl = slots[w];
+    $('cmpName' + W).textContent = sl ? sl.name : '拖放或點選 Word／文字檔';
+    $('cmpSlot' + W).classList.toggle('filled', !!sl);
+    $('cmpClear' + W).hidden = !sl;
+  }
+  function maybeCompare(){
+    if (mode !== 'compare') return;
+    if (slots.a && slots.b) showDiff(slots.a.text, slots.b.text, slots.a.name + ' → ' + slots.b.name, true);
+    else $('fileDiffPanel').hidden = true;
+  }
+  async function loadSlot(w, file){
+    var lower = file.name.toLowerCase();
+    if (/\.doc$/.test(lower)){ toast('「' + file.name + '」是舊版 .doc，請先在 Word 另存成 .docx'); return false; }
+    try {
+      var buf = await file.arrayBuffer(), text;
+      if (/\.docx$/.test(lower)) text = await WZ.docxText(buf);
+      else text = WZ.decodeText(buf, $('fileEncoding').value, false).text;
+      if (text == null) throw new Error('decode');
+      slots[w] = { name: file.name, text: text }; slotUI(w);
+      return true;
+    } catch (e){ toast('「' + file.name + '」打不開，檔案可能損壞或有密碼保護'); return false; }
+  }
+  async function loadSlots(w, fileList){
+    var other = w === 'a' ? 'b' : 'a';
+    if (fileList[0]) await loadSlot(w, fileList[0]);
+    if (fileList[1]) await loadSlot(other, fileList[1]);
+    maybeCompare();
+  }
+  ['a', 'b'].forEach(function(w){
+    var W = w.toUpperCase(), zone = $('cmpSlot' + W), inp = $('cmpInput' + W);
+    zone.addEventListener('click', function(e){ if (e.target.closest('.slot-clear')) return; inp.click(); });
+    zone.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); inp.click(); } });
+    inp.addEventListener('change', function(){
+      var fs = Array.prototype.slice.call(inp.files); inp.value = '';
+      busy = busy.then(function(){ return loadSlots(w, fs); });
+    });
+    ['dragenter', 'dragover'].forEach(function(ev){ zone.addEventListener(ev, function(e){ e.preventDefault(); zone.classList.add('over'); }); });
+    ['dragleave', 'drop'].forEach(function(ev){ zone.addEventListener(ev, function(e){ e.preventDefault(); zone.classList.remove('over'); }); });
+    zone.addEventListener('drop', function(e){
+      var fs = Array.prototype.slice.call(e.dataTransfer.files);
+      busy = busy.then(function(){ return loadSlots(w, fs); });
+    });
+    $('cmpClear' + W).addEventListener('click', function(){ slots[w] = null; slotUI(w); maybeCompare(); });
+  });
+  $('cmpSwapBtn').addEventListener('click', function(){
+    var t = slots.a; slots.a = slots.b; slots.b = t; slotUI('a'); slotUI('b'); maybeCompare();
+  });
+  $('fdOnlyDiff').addEventListener('change', function(){ renderDiffPanel(false); });
+  $('fdIgnoreSpace').addEventListener('change', function(){ renderDiffPanel(false); });
+  $('fdCloseBtn').addEventListener('click', function(){ $('fileDiffPanel').hidden = true; });
 
   // ---- 事件 ----
   var drop = $('fileDrop'), input = $('fileInput');
@@ -2136,7 +2426,7 @@
     var btn = e.target.closest('button'); if (!btn) return;
     $('fileModeGroup').querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
-    mode = btn.getAttribute('data-fmode'); applyModeUI(); reconvertAll();
+    mode = btn.getAttribute('data-fmode'); applyModeUI(); if (mode !== 'compare') reconvertAll();
   });
   $('fileDirGroup').addEventListener('click', function(e){
     var btn = e.target.closest('button'); if (!btn) return;
@@ -2149,6 +2439,7 @@
     reconvertAll();
   });
   $('filePhrase').addEventListener('change', reconvertAll);
+  $('fileQuotes').addEventListener('change', reconvertAll);
   $('fileEncoding').addEventListener('change', function(){ if (items.length) toast('新的編碼會套用在之後加入的檔案'); });
   $('fileGoRulesBtn').addEventListener('click', function(){
     var b = document.querySelector('#tocNav button[data-target="tool-replace"]'); if (b) b.click();
